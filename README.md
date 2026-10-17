@@ -24,11 +24,15 @@ Pre-built binaries are available for 64-bit platforms without requiring a build 
 
 ---
 
-## Demonstration
+## Interface & Demonstration
 
-[![IT26 Workstation Demonstration](assets/demo_screenshot.png)](https://github.com/martonvoros/it26/releases/download/v1.0.4/IT26.mp4)
+[![IT26 Pattern Editor](assets/screenshots/pattern_editor.png)](https://github.com/martonvoros/it26/releases/download/v1.0.4/IT26.mp4)
 
-> 🎬 **[Watch High-Definition Demo Video (IT26.mp4)](https://github.com/martonvoros/it26/releases/download/v1.0.4/IT26.mp4)** — 1080p full-screen capture showcasing live 138 BPM playback, sub-pixel vector rendering, audio spectrum visualizer, and keyboard-driven sequencing.
+| MIDI Hardware & Controller Hub (F11) | Interactive Sound & Audition Lab (F1) |
+|:---:|:---:|
+| [![MIDI Controller Hub](assets/screenshots/midi_hub.png)](assets/screenshots/midi_hub.png) | [![Interactive Sound Lab](assets/screenshots/sound_lab.png)](assets/screenshots/sound_lab.png) |
+
+> 🎬 **[Watch High-Definition Demo Video (IT26.mp4)](https://github.com/martonvoros/it26/releases/download/v1.0.4/IT26.mp4)**
 
 ---
 
