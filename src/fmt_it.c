@@ -124,19 +124,38 @@ bool it_load_file(ITSong* song, const char* filepath) {
         song->orders[i] = IT_ORDER_END;
     }
 
+    /* Absolute offsets according to Impulse Tracker specification */
+    uint32_t inst_table_off = 0x00C0 + song->order_count;
+    uint32_t smp_table_off  = inst_table_off + song->instrument_count * 4;
+    uint32_t pat_table_off  = smp_table_off + song->sample_count * 4;
+
     /* Offset tables */
     uint32_t inst_offsets[IT_MAX_INSTRUMENTS];
     uint32_t smp_offsets[IT_MAX_SAMPLES];
     uint32_t pat_offsets[IT_MAX_PATTERNS];
+    memset(inst_offsets, 0, sizeof(inst_offsets));
+    memset(smp_offsets, 0, sizeof(smp_offsets));
+    memset(pat_offsets, 0, sizeof(pat_offsets));
 
-    for (int i = 0; i < song->instrument_count && i < IT_MAX_INSTRUMENTS; i++) {
-        inst_offsets[i] = it_read_u32le(f);
+    if (song->instrument_count > 0) {
+        fseek(f, inst_table_off, SEEK_SET);
+        for (int i = 0; i < song->instrument_count && i < IT_MAX_INSTRUMENTS; i++) {
+            inst_offsets[i] = it_read_u32le(f);
+        }
     }
-    for (int i = 0; i < song->sample_count && i < IT_MAX_SAMPLES; i++) {
-        smp_offsets[i] = it_read_u32le(f);
+
+    if (song->sample_count > 0) {
+        fseek(f, smp_table_off, SEEK_SET);
+        for (int i = 0; i < song->sample_count && i < IT_MAX_SAMPLES; i++) {
+            smp_offsets[i] = it_read_u32le(f);
+        }
     }
-    for (int i = 0; i < song->pattern_count && i < IT_MAX_PATTERNS; i++) {
-        pat_offsets[i] = it_read_u32le(f);
+
+    if (song->pattern_count > 0) {
+        fseek(f, pat_table_off, SEEK_SET);
+        for (int i = 0; i < song->pattern_count && i < IT_MAX_PATTERNS; i++) {
+            pat_offsets[i] = it_read_u32le(f);
+        }
     }
 
     /* Song message */
@@ -285,8 +304,11 @@ bool it_load_file(ITSong* song, const char* filepath) {
                     }
                     free(raw);
                 }
+            } else if (is_compressed) {
+                /* 16-bit compressed sample: zero fill to prevent harsh noise */
+                memset(smp->data, 0, smp->length * sizeof(float));
             } else {
-                /* 16-bit sample */
+                /* 16-bit uncompressed PCM */
                 int16_t* raw16 = (int16_t*)malloc(smp->length * sizeof(int16_t));
                 if (raw16) {
                     it_read_bytes(f, raw16, smp->length * sizeof(int16_t));

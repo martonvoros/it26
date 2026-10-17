@@ -414,26 +414,26 @@ bool it_demo_load_drum_groove(ITSong* song, ITGenreId genre) {
 }
 
 static const char* s_genre_it_files[IT_GENRE_COUNT] = {
-    "assets/house_of_funk.it",                        /* IT_GENRE_HOUSE (DJ-Aldav: House of Fame) */
-    "assets/demos/foregone.it",                        /* IT_GENRE_DNB (Michiel van den Bos - Unreal Tournament Foregone Destruction) */
-    "assets/demos/a-000003.it",                        /* IT_GENRE_BREAKS */
-    "assets/demos/adfchips.it",                        /* IT_GENRE_HIPHOP (Funky Chiptune Boom-Bap) */
-    "assets/demos/ash_technodancer.it",                /* IT_GENRE_TECHNO (Techno Dancer) */
-    "assets/demos/a-lin_trancen.it",                   /* IT_GENRE_TRANCE (Euphoric Trance) */
-    "assets/demos/82190-rave.it",                      /* IT_GENRE_RAVE (90s Oldskool Rave) */
-    "assets/demos/dubbel_part_1.it",                   /* IT_GENRE_DUBTECHNO (Dub Techno) */
-    "assets/demos/a-9n3.it",                           /* IT_GENRE_POP (Synthpop) */
-    "assets/demos/surasshu_-_eek.it",                  /* IT_GENRE_RNB (Surasshu - Eek) */
-    "assets/demos/ambiant_.it",                        /* IT_GENRE_AMBIENT (Ambient Works) */
-    "assets/demos/acsid_electrobeat.it",               /* IT_GENRE_ELECTRO (Electro Beat) */
-    "assets/demos/81590-future.it",                    /* IT_GENRE_GARAGE (Future Garage) */
-    "assets/demos/aacid.it",                           /* IT_GENRE_PSYTRANCE (Acid Goa) */
-    "assets/demos/aeuk_-_cyber_heavey_punk_slab.it",   /* IT_GENRE_INDUSTRIAL (Cyber Heavy Punk Slab) */
-    "assets/demos/a-000005.it",                        /* IT_GENRE_SYNTHWAVE (Synth Kings) */
-    "assets/demos/aeuk_-_cyber_heavey_punk_slab.it",   /* IT_GENRE_CYBERPUNK (Cyberpunk Midtempo) */
-    "assets/demos/a-windf.it",                         /* IT_GENRE_LOFI (Skaven: Windfall) */
-    "assets/dead_lock.it",                             /* IT_GENRE_HARDSTYLE (Elwood: Dead Lock) */
-    "assets/demos/01_space_light.it"                   /* IT_GENRE_MINIMAL (Space Light Minimal) */
+    "assets/hard_house.it",                                     /* IT_GENRE_HOUSE (House Of Heaven - 86 inst, 65 smp, 72 pat) */
+    "assets/demos/foregone.it",                                 /* IT_GENRE_DNB (Michiel van den Bos - Unreal Tournament Foregone Destruction) */
+    "assets/demos/aeuk_-_breaking_the_barriers.it",             /* IT_GENRE_BREAKS (Aeuk: Breaking the Barriers) */
+    "assets/groovetasticola.it",                                /* IT_GENRE_HIPHOP (Groovetasticola Funk) */
+    "assets/demos/beyond_-_techno.it",                          /* IT_GENRE_TECHNO (Beyond Techno Peak-Time) */
+    "assets/demos/a-trance.it",                                 /* IT_GENRE_TRANCE (Euphoric Trance Odyssey) */
+    "assets/demos/82190-rave.it",                               /* IT_GENRE_RAVE (90s Oldskool Rave Storm) */
+    "assets/demos/ambient_blank.it",                            /* IT_GENRE_DUBTECHNO (Ambient Blank Dub Space) */
+    "assets/demos/a-9n3.it",                                    /* IT_GENRE_POP (Dream State Synthpop) */
+    "assets/demos/surasshu_-_eek.it",                           /* IT_GENRE_RNB (Surasshu - Eek!) */
+    "assets/demos/basehead_-_the_promise.it",                   /* IT_GENRE_AMBIENT (Basehead: The Promise) */
+    "assets/demos/acsid_electrobeat2.it",                       /* IT_GENRE_ELECTRO (Electro Beat 2) */
+    "assets/demos/skaven_-_quality_time_-_big_money_mix_v2.it", /* IT_GENRE_GARAGE (Skaven: Quality Time Big Money Mix) */
+    "assets/demos/basehead_-_indigo.it",                        /* IT_GENRE_PSYTRANCE (Basehead: Indigo Acid) */
+    "assets/demos/basehead_-_unreal_tournament_-_seeker.it",    /* IT_GENRE_INDUSTRIAL (Basehead: Seeker Unreal Tournament) */
+    "assets/demos/necros_-_1997_hornet_multimedia_upgrade.it",  /* IT_GENRE_SYNTHWAVE (Necros: Hornet Multimedia Upgrade) */
+    "assets/demos/dnb_clint.it",                                /* IT_GENRE_CYBERPUNK (Clint Cyber Bass) */
+    "assets/demos/a-windf.it",                                  /* IT_GENRE_LOFI (Skaven: Winds of Fjords) */
+    "assets/demos/ash_technodancer.it",                         /* IT_GENRE_HARDSTYLE (Ash: Techno Dancer) */
+    "assets/demos/dnbskyward.it"                                /* IT_GENRE_MINIMAL (Skyward Minimal Progression) */
 };
 
 bool it_demo_load_full_song(ITSong* song, ITGenreId genre) {

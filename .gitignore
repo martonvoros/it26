@@ -8,4 +8,5 @@ build-*/
 *.obj
 *.d
 *.log
+*.wav
 .DS_Store
