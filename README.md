@@ -1,4 +1,4 @@
-# Impulse Tracker Modern (IT26)
+# IT26 - Impulse Tracker Modern Workstation (Windows, macOS & Linux)
 
 [![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen.svg)]()
 [![Standard](https://img.shields.io/badge/Language-C99-blue.svg)]()
@@ -7,10 +7,9 @@
 [![MIDI](https://img.shields.io/badge/MIDI%20Controllers-655%2B%20Supported-orange.svg)]()
 [![License](https://img.shields.io/badge/License-GPLv2%2BMIT-lightgrey.svg)]()
 
-> **Impulse Tracker was a standout MS-DOS sequencer with real influence on modern electronic music.**  
+> **Native 64-bit multi-platform digital audio workstation and tracker for Windows, macOS, and Linux.**  
 >  
-> **IT26 Modern Mod & 64-Bit Port created by Marton Voros aka C41**  
-> *(Original 1995 MS-DOS Impulse Tracker created by Jeffrey Lim)*
+> **Created by Marton Voros aka C41** *(Based on the legendary 1995 MS-DOS Impulse Tracker 2.14 by Jeffrey Lim)*
 
 ---
 
@@ -18,11 +17,11 @@
 
 ---
 
-## ⚡ What is Impulse Tracker Modern?
+## ⚡ What is Impulse Tracker Modern (IT26)?
 
 In 1995, **Jeffrey Lim** released **Impulse Tracker 2.14** for MS-DOS. It became the weapon of choice for a generation of underground electronic musicians, game composers, and demoscene legends. The lightning-fast keyboard workflow, laser-precise tick timing, and Jeffrey Lim's signature **resonant 24dB state-variable lowpass filter (`Zxx`)** defined the sound of 90s Drum & Bass, Jungle, Acid Techno, and Game Soundtracks (like *Unreal Tournament* and *Deus Ex*).
 
-**Impulse Tracker Modern (IT26)** is a clean, native **C99** and **SDL3** modern modification and port engineered from the ground up for 64-bit platforms by **Marton Voros aka C41**. It preserves the authentic factory Impulse Tracker 2.14 layout, typography, and mathematical audio behavior while delivering high-DPI scaling, seamless tactile mouse interaction, plug-and-play support for **655 modern USB/MIDI controllers**, and an interactive **Quickstart Wizard** for modern electronic music producers.
+**IT26** is a clean, native **C99** and **SDL3** modern modification and port engineered from the ground up for 64-bit platforms (**Windows, macOS, and Linux**) by **Marton Voros aka C41**. It preserves the authentic factory Impulse Tracker 2.14 layout, typography, and mathematical audio behavior while delivering high-DPI scaling, seamless tactile mouse interaction, plug-and-play support for **655 modern USB/MIDI controllers**, and an interactive **Quickstart Wizard** for modern electronic music producers.
 
 ---
 
@@ -141,23 +140,35 @@ cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 
 # Launch the tracker:
-.\impulse-tracker.exe
+.\IT26.exe
+# or use:
+.\run.bat
 ```
 
 ### Linux (Ubuntu / Debian / Fedora / Arch)
 ```bash
-sudo apt install build-essential cmake ninja-build libasound2-dev libpulse-dev libx11-dev libwayland-dev
+# Automated build & package script:
+chmod +x build_linux.sh
+./build_linux.sh
+
+# Or manual CMake:
+sudo apt install build-essential cmake ninja-build libasound2-dev libpulse-dev
 cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
 cmake --build build
-./build/impulse-tracker
+./build/IT26
 ```
 
-### macOS (Apple Silicon / Intel)
+### macOS (Apple Silicon / Intel Universal)
 ```bash
-brew install cmake ninja sdl3
+# Automated Universal Bundle build:
+chmod +x build_macos.sh
+./build_macos.sh
+
+# Or manual CMake:
+brew install cmake ninja
 cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
 cmake --build build
-./build/impulse-tracker
+open build/IT26.app
 ```
 
 ---
