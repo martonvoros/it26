@@ -4,10 +4,10 @@
 static const ITHelpSection s_sections[] = {
     {
         "Quickstart",
-        "WELCOME TO IMPULSE TRACKER MODERN",
-        "Impulse Tracker is a legendary digital audio workstation and music tracker\n"
-        "originally created by Jeffrey Lim in 1995 for MS-DOS, now completely ported\n"
-        "to modern 64-bit systems with high-resolution vector fonts, 32-bit float audio,\n"
+        "WELCOME TO IT26",
+        "IT26 is a modern, high-performance digital audio workstation and music tracker\n"
+        "inspired by the legendary 1995 MS-DOS tracker by Jeffrey Lim, completely ported\n"
+        "to modern 64-bit systems with high-resolution typography, 32-bit float audio,\n"
         "and plug-and-play USB MIDI controller support.\n\n"
         "TRACKER CONCEPTS IN 60 SECONDS:\n"
         "-------------------------------------------------------------------------\n"
@@ -107,9 +107,9 @@ static const ITHelpSection s_sections[] = {
     {
         "MIDI Tutorial",
         "MODERN MIDI CONTROLLERS & INTERACTIVE REMAPPING TUTORIAL",
-        "WELCOME TO THE IMPULSE TRACKER MIDI WORKSTATION:\n"
+        "WELCOME TO THE IT26 MIDI WORKSTATION:\n"
         "-------------------------------------------------------------------------\n"
-        "Impulse Tracker features native plug-and-play USB and DIN MIDI controller\n"
+        "IT26 features native plug-and-play USB and DIN MIDI controller\n"
         "support with over 650 pre-configured hardware profiles (2018 through October 2026).\n\n"
         "SUPPORTED CONTROLLERS (650+ POPULAR MODELS):\n"
         "-------------------------------------------------------------------------\n"
@@ -132,6 +132,82 @@ static const ITHelpSection s_sections[] = {
         "  Step 5: Turn the physical knob or press the physical key/pad on your device.\n"
         "  Step 6: The CC or Note is bound instantly and persists in your configuration!\n\n"
         "Click the button below to test or configure your controller right now:"
+    },
+    {
+        "About IT26",
+        "ABOUT IT26 & THE ORIGINAL IMPULSE TRACKER (JEFFREY LIM)",
+        "THE LEGENDARY IMPULSE TRACKER HERITAGE:\n"
+        "-------------------------------------------------------------------------\n"
+        "Impulse Tracker was originally conceived, designed, and programmed by Jeffrey Lim\n"
+        "between 1995 and 2014 in Australia for MS-DOS. Written largely in pure x86 Assembly,\n"
+        "it revolutionized computer music production by introducing:\n"
+        "  * 64 native channels with New Note Actions (NNA) and Virtual Channels.\n"
+        "  * Resonant lowpass filters (Zxx effects) and individual channel panning.\n"
+        "  * Highly expressive volume and panning envelopes with multi-point looping.\n"
+        "  * Lightning-fast, distraction-free keyboard navigation and ergonomic shortcuts.\n"
+        "  * The .IT module format (documented in Jeffrey Lim's ITTECH.TXT), which became\n"
+        "    the gold standard for tracker formats worldwide.\n\n"
+        "Impulse Tracker powered the soundtracks of landmark video games such as Unreal,\n"
+        "Unreal Tournament, and Deus Ex (composed by Alexander Brandon, Michiel van den Bos,\n"
+        "and Dan Gardopee), and gave birth to entire electronic music genres and demoscene\n"
+        "masterpieces by composers like Skaven (Peter Hajba), Necros (Andrew Sega), Basehead,\n"
+        "Hunz, and many more.\n\n"
+        "ORIGINAL SOURCE CODE RELEASE:\n"
+        "-------------------------------------------------------------------------\n"
+        "In 2014, to celebrate '20 Years of Impulse Tracker', Jeffrey Lim published an\n"
+        "in-depth historical retrospective and released the full original source code\n"
+        "(assembly code, sound drivers, and technical documentation) on BitBucket,\n"
+        "subsequently preserved and published on GitHub under the BSD 3-Clause License.\n\n"
+        "IT26 MODERN MOD & PORT:\n"
+        "-------------------------------------------------------------------------\n"
+        "IT26 is a clean, modern, multi-platform 64-bit mod & port engineered from\n"
+        "the ground up by Marton Voros aka C41, based on the legendary MS-DOS Impulse Tracker\n"
+        "originally created by Jeffrey Lim (1995-2014).\n\n"
+        "All original copyrights, trademarks, and design concepts of Impulse Tracker belong to\n"
+        "Jeffrey Lim. IT26 stands as an active tribute and modern continuation of his genius."
+    },
+    {
+        "License",
+        "SOFTWARE LICENSES & ORIGINAL IMPULSE TRACKER SOURCE CODE NOTICE",
+        "=========================================================================\n"
+        "ORIGINAL IMPULSE TRACKER SOURCE CODE LICENSE\n"
+        "=========================================================================\n"
+        "The original Impulse Tracker source code was released by Jeffrey Lim under the\n"
+        "terms of the BSD 3-Clause License:\n\n"
+        "Copyright (c) 2014, 2024, Jeffrey Lim. All rights reserved.\n\n"
+        "Redistribution and use in source and binary forms, with or without\n"
+        "modification, are permitted provided that the following conditions are met:\n\n"
+        "1. Redistributions of source code must retain the above copyright notice,\n"
+        "   this list of conditions and the following disclaimer.\n\n"
+        "2. Redistributions in binary form must reproduce the above copyright notice,\n"
+        "   this list of conditions and the following disclaimer in the documentation\n"
+        "   and/or other materials provided with the distribution.\n\n"
+        "3. Neither the name of the copyright holder nor the names of its\n"
+        "   contributors may be used to endorse or promote products derived from\n"
+        "   this software without specific prior written permission.\n\n"
+        "THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS IS\"\n"
+        "AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE\n"
+        "IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE\n"
+        "DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE\n"
+        "FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL\n"
+        "DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR\n"
+        "SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER\n"
+        "CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,\n"
+        "OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE\n"
+        "OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\n\n"
+        "=========================================================================\n"
+        "IT26 APPLICATION & ENGINE LICENSE\n"
+        "=========================================================================\n"
+        "IT26 (Impulse Tracker 2026 Modern Workstation) is distributed as free and\n"
+        "open-source software under the GNU General Public License v2+ (GPL-2.0+)\n"
+        "and permissive modular licenses, maintaining full compliance with tracker\n"
+        "community standards and the original Impulse Tracker BSD 3-Clause terms.\n\n"
+        "THIRD-PARTY COMPONENT LICENSES:\n"
+        "-------------------------------------------------------------------------\n"
+        "* SDL3: Simple DirectMedia Layer - zlib License (Copyright (C) Sam Lantinga)\n"
+        "* stb_truetype & stb_image: Public Domain / MIT License (Sean Barrett)\n"
+        "* JetBrains Mono Font: SIL Open Font License v1.1 (JetBrains s.r.o.)\n\n"
+        "Impulse Tracker (C) 1995-2024 Jeffrey Lim. All rights acknowledged and honored."
     }
 };
 

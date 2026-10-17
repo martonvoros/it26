@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=IT26
+GenericName=Music Tracker & DAW
+Comment=IT26 Modern Workstation based on Jeffrey Lim's Impulse Tracker
+Exec=IT26 %F
+Icon=it26
+Terminal=false
+Type=Application
+Categories=AudioVideo;Audio;AudioVideoEditing;Midi;Sequencer;
+MimeType=audio/x-it;audio/x-s3m;audio/x-xm;audio/x-mod;
+StartupNotify=true
+Keywords=tracker;audio;music;daw;midi;impulse;mod;s3m;xm;it;

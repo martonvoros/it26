@@ -13,6 +13,49 @@
 #include "fmt_it.h"
 
 int main(int argc, char* argv[]) {
+    /* Handle command line information flags */
+    if (argc > 1 && argv[1]) {
+        if (strcmp(argv[1], "--version") == 0 || strcmp(argv[1], "-v") == 0) {
+            printf("IT26 Modern Workstation (64-bit)\n");
+            printf("Conceived and created in honor of Jeffrey Lim's Impulse Tracker (1995-2024)\n");
+            return 0;
+        }
+        if (strcmp(argv[1], "--about") == 0) {
+            printf("=========================================================================\n");
+            printf("IT26 Modern Workstation (64-bit)\n");
+            printf("=========================================================================\n");
+            printf("Conceived and created in honor of Jeffrey Lim, who designed and coded\n");
+            printf("the legendary Impulse Tracker (1995-2014) in Australia for MS-DOS.\n");
+            printf("Impulse Tracker revolutionized computer music with 64 channels, resonant\n");
+            printf("filters (Zxx), expressive envelopes, and the iconic .IT module format.\n");
+            printf("In 2014, Jeffrey Lim released the complete source code under the BSD 3-Clause\n");
+            printf("License. IT26 continues this legacy for modern 64-bit operating systems.\n");
+            return 0;
+        }
+        if (strcmp(argv[1], "--license") == 0) {
+            printf("=========================================================================\n");
+            printf("ORIGINAL IMPULSE TRACKER SOURCE CODE LICENSE\n");
+            printf("=========================================================================\n");
+            printf("BSD 3-Clause License\n");
+            printf("Copyright (c) 2014, 2024, Jeffrey Lim. All rights reserved.\n\n");
+            printf("Redistribution and use in source and binary forms, with or without\n");
+            printf("modification, are permitted provided that the following conditions are met:\n\n");
+            printf("1. Redistributions of source code must retain the above copyright notice,\n");
+            printf("   this list of conditions and the following disclaimer.\n");
+            printf("2. Redistributions in binary form must reproduce the above copyright notice,\n");
+            printf("   this list of conditions and the following disclaimer in the documentation\n");
+            printf("   and/or other materials provided with the distribution.\n");
+            printf("3. Neither the name of the copyright holder nor the names of its\n");
+            printf("   contributors may be used to endorse or promote products derived from\n");
+            printf("   this software without specific prior written permission.\n\n");
+            printf("=========================================================================\n");
+            printf("IT26 APPLICATION LICENSE\n");
+            printf("=========================================================================\n");
+            printf("Distributed under the GNU General Public License v2+ (GPL-2.0+).\n");
+            return 0;
+        }
+    }
+
     /* Initialize SDL3 subsystems */
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_EVENTS)) {
         SDL_Log("Failed to initialize SDL3: %s", SDL_GetError());
@@ -28,7 +71,7 @@ int main(int argc, char* argv[]) {
     int win_h = (cfg->window_height > 0) ? cfg->window_height : (int)(IT_LOGICAL_HEIGHT * cfg->ui_scale);
 
     SDL_Window* window = SDL_CreateWindow(
-        "Impulse Tracker Modern - [64-bit Workstation]",
+        "IT26 - [64-bit Workstation]",
         win_w, win_h,
         SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY
     );
@@ -67,11 +110,12 @@ int main(int argc, char* argv[]) {
     ITSong* song = it_song_create();
     it_song_init_default(song);
 
-    /* Load real, complex classic house track on startup (House Of Heaven - 86 inst, 65 smp, 72 pat) */
+    /* Load "Trance After Tranquility" (138 BPM) on startup as requested by user */
     bool startup_loaded = false;
-    if (it_load_module_any(song, "assets/hard_house.it") ||
-        it_load_module_any(song, "assets/demos/foregone.it") ||
-        it_load_module_any(song, "assets/groovetasticola.it")) {
+    if (it_load_module_any(song, "assets/demos/a-trance.it") ||
+        it_load_module_any(song, "assets/demos/a-windf.it") ||
+        it_load_module_any(song, "assets/hard_house.it") ||
+        it_load_module_any(song, "assets/demos/foregone.it")) {
         startup_loaded = true;
     }
 

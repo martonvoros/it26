@@ -89,7 +89,7 @@ static void render_step_0(int x, int y, int w, int h) {
     it_gfx_draw_line(x + 20, y + 36, x + w - 20, y + 36, IT_COL_PANEL_BORDER);
 
     int cy = y + 48;
-    it_gfx_draw_text_bold(x + 20, cy, "Welcome to Impulse Tracker 2.14 Modernized!", IT_COL_CYAN);
+    it_gfx_draw_text_bold(x + 20, cy, "Welcome to IT26 - The Ultimate 64-Bit Tracker Workstation!", IT_COL_CYAN);
     cy += 24;
 
     it_gfx_draw_text(x + 20, cy, "If you're coming from FL Studio, Ableton Live, Logic Pro, or Reaper, tracker sequencers look different,", IT_COL_WHITE); cy += 20;
@@ -107,8 +107,8 @@ static void render_step_0(int x, int y, int w, int h) {
     it_gfx_draw_text(x + 32, cy + 102, "* High mouse fatigue; zoom & scroll dependent.", IT_COL_GRAY);
     it_gfx_draw_text(x + 32, cy + 126, "* Swing & groove quantized to float milliseconds.", IT_COL_GRAY);
 
-    /* Right Box: Impulse Tracker */
-    it_widget_panel(x + 30 + box_w, cy, box_w, box_h, "Impulse Tracker (Vertical Speed Workstation)");
+    /* Right Box: IT26 */
+    it_widget_panel(x + 30 + box_w, cy, box_w, box_h, "IT26 (Vertical Speed Workstation)");
     it_gfx_draw_text(x + 42 + box_w, cy + 30, "* Time flows VERTICALLY from Top to Bottom.", IT_COL_CYAN);
     it_gfx_draw_text(x + 42 + box_w, cy + 54, "* Every line is a Row (16th note / rhythmic tick).", IT_COL_WHITE);
     it_gfx_draw_text(x + 42 + box_w, cy + 78, "* Everything on keyboard: type notes like words at 120 WPM!", IT_COL_GREEN);
@@ -128,7 +128,7 @@ static void render_step_1(int x, int y, int w, int h) {
     it_gfx_draw_line(x + 20, y + 36, x + w - 20, y + 36, IT_COL_PANEL_BORDER);
 
     int cy = y + 48;
-    it_gfx_draw_text(x + 20, cy, "Every tracker cell contains up to 4 values packed compactly in standard Impulse Tracker notation:", IT_COL_WHITE);
+    it_gfx_draw_text(x + 20, cy, "Every tracker cell contains up to 4 values packed compactly in standard IT26 notation:", IT_COL_WHITE);
     cy += 28;
 
     /* Big Visual Cell Breakdown Box */

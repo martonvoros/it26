@@ -1,0 +1,98 @@
+name: Build & Release IT26 (Windows, Linux, macOS)
+
+on:
+  push:
+    branches: [ "**" ]
+    tags: [ "v*" ]
+  pull_request:
+    branches: [ "**" ]
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    name: Windows x64 Build
+    runs-on: windows-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Set up Ninja & CMake
+        uses: ashutoshvarma/setup-ninja@v1
+        with:
+          version: 1.11.1
+
+      - name: Configure CMake
+        run: |
+          cmake -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release -DIT_FETCH_SDL=ON
+
+      - name: Build IT26
+        run: |
+          cmake --build build --config Release --parallel
+
+      - name: Stage Windows Release Package
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist\IT26-windows-x64
+          Copy-Item build\Release\IT26.exe dist\IT26-windows-x64\IT26.exe
+          Copy-Item build\Release\IT26.exe dist\IT26-windows-x64\impulse-tracker.exe
+          if (Test-Path build\Release\SDL3.dll) {
+              Copy-Item build\Release\SDL3.dll dist\IT26-windows-x64\
+          } elseif (Test-Path SDL3.dll) {
+              Copy-Item SDL3.dll dist\IT26-windows-x64\
+          }
+          Copy-Item head.jpg dist\IT26-windows-x64\
+          Copy-Item -Recurse assets dist\IT26-windows-x64\assets
+          Copy-Item run.bat, LICENSE, README.md dist\IT26-windows-x64\
+          Compress-Archive -Path dist\IT26-windows-x64\* -DestinationPath dist\IT26-windows-x64.zip
+
+      - name: Upload Windows Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: IT26-windows-x64
+          path: dist/IT26-windows-x64.zip
+
+  build-linux:
+    name: Linux x86_64 Build
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build build-essential libasound2-dev libpulse-dev
+
+      - name: Build Linux Package
+        run: |
+          chmod +x build_linux.sh
+          ./build_linux.sh
+
+      - name: Test CLI attribution
+        run: |
+          ./dist/IT26-linux-x86_64/IT26 --about
+          ./dist/IT26-linux-x86_64/IT26 --license
+
+      - name: Upload Linux Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: IT26-linux-x86_64
+          path: dist/IT26-linux-x86_64.tar.gz
+
+  build-macos:
+    name: macOS Universal Build
+    runs-on: macos-14
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Build macOS App Bundle
+        run: |
+          chmod +x build_macos.sh
+          ./build_macos.sh
+
+      - name: Upload macOS Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: IT26-macos-universal
+          path: dist/IT26-macos-universal.zip

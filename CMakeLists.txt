@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(ImpulseTrackerModern VERSION 1.0.0 LANGUAGES C)
+project(IT26 VERSION 1.0.0 LANGUAGES C)
 
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -81,15 +81,18 @@ endif()
 
 if(WIN32 AND NOT IT_CONSOLE)
   add_executable(impulse-tracker WIN32 ${IT_SOURCES})
+  set_target_properties(impulse-tracker PROPERTIES OUTPUT_NAME "IT26")
 elseif(APPLE)
   add_executable(impulse-tracker MACOSX_BUNDLE ${IT_SOURCES})
   set_target_properties(impulse-tracker PROPERTIES
-    MACOSX_BUNDLE_BUNDLE_NAME "Impulse Tracker"
-    MACOSX_BUNDLE_GUI_IDENTIFIER "org.impulsetracker.modern"
+    OUTPUT_NAME "IT26"
+    MACOSX_BUNDLE_BUNDLE_NAME "IT26"
+    MACOSX_BUNDLE_GUI_IDENTIFIER "org.it26.tracker"
     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION}
     MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/res/Info.plist.in)
 else()
   add_executable(impulse-tracker ${IT_SOURCES})
+  set_target_properties(impulse-tracker PROPERTIES OUTPUT_NAME "IT26")
 endif()
 
 target_include_directories(impulse-tracker PRIVATE src third_party/stb)
@@ -112,10 +115,17 @@ else()
   endif()
 endif()
 
-# copy SDL3 runtime next to the executable on Windows
-if(WIN32 AND TARGET SDL3::SDL3-shared)
+# Deploy runtime next to the executable on Windows
+if(WIN32)
+  if(TARGET SDL3::SDL3-shared)
+    add_custom_command(TARGET impulse-tracker POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:SDL3::SDL3-shared> $<TARGET_FILE_DIR:impulse-tracker>)
+  endif()
   add_custom_command(TARGET impulse-tracker POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:SDL3::SDL3-shared> $<TARGET_FILE_DIR:impulse-tracker>)
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:impulse-tracker> ${CMAKE_SOURCE_DIR}/IT26.exe)
+else()
+  add_custom_command(TARGET impulse-tracker POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:impulse-tracker> ${CMAKE_SOURCE_DIR}/IT26)
 endif()
 
 install(TARGETS impulse-tracker RUNTIME DESTINATION bin BUNDLE DESTINATION .)

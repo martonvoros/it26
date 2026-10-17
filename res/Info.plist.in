@@ -11,7 +11,8 @@
   <key>CFBundleShortVersionString</key><string>${MACOSX_BUNDLE_SHORT_VERSION_STRING}</string>
   <key>CFBundleVersion</key><string>${MACOSX_BUNDLE_SHORT_VERSION_STRING}</string>
   <key>NSHighResolutionCapable</key><true/>
-  <key>NSMicrophoneUsageDescription</key><string>Impulse Tracker does not record audio.</string>
+  <key>NSHumanReadableCopyright</key><string>Original Impulse Tracker (C) 1995-2024 Jeffrey Lim (BSD-3-Clause) | IT26 (C) 2026</string>
+  <key>NSMicrophoneUsageDescription</key><string>IT26 does not record audio.</string>
   <key>CFBundleDocumentTypes</key>
   <array>
     <dict>

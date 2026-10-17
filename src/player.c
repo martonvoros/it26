@@ -223,9 +223,10 @@ void it_player_trigger_note(int host_channel, int note, int inst_idx, int vol) {
     nv->inst_num = (uint8_t)actual_inst;
     nv->sample_pos = 0.0;
     nv->fadeout_count = 1024;
-    nv->fadeout_rate = fadeout;
+    nv->fadeout_rate = (fadeout > 0) ? fadeout : 32;
     nv->note_off = false;
     nv->note_fade = false;
+    nv->ramp_in = 0.0f;
 
     float freq = it_note_to_freq(play_note, smp->c5_speed);
     nv->base_freq = freq;
@@ -241,7 +242,12 @@ void it_player_trigger_note(int host_channel, int note, int inst_idx, int vol) {
     /* Pan */
     int pan_val = song->channel_pan[host_channel];
     if (smp->default_pan & 0x80) pan_val = smp->default_pan & 0x7F;
-    nv->pan_final = ((float)pan_val - 32.0f) / 32.0f; /* -1.0 .. +1.0 */
+    if ((song->flags & SONG_FLAG_INSTRUMENTS) && actual_inst > 0 && actual_inst < IT_MAX_INSTRUMENTS) {
+        if (!(song->instruments[actual_inst].default_pan & 0x80)) {
+            pan_val = song->instruments[actual_inst].default_pan;
+        }
+    }
+    nv->pan_final = IT_CLAMP(((float)pan_val - 32.0f) / 32.0f, -1.0f, 1.0f);
 
     /* Filter */
     nv->filter_enabled = (init_cutoff < 127.0f);
@@ -250,10 +256,27 @@ void it_player_trigger_note(int host_channel, int note, int inst_idx, int vol) {
     nv->flt_low[0] = nv->flt_low[1] = 0.0f;
     nv->flt_band[0] = nv->flt_band[1] = 0.0f;
 
-    /* Envelope setup */
-    nv->vol_env_tick = 0;
-    nv->pan_env_tick = 0;
-    nv->pitch_env_tick = 0;
+    /* Envelopes setup */
+    if ((song->flags & SONG_FLAG_INSTRUMENTS) && actual_inst > 0 && actual_inst < IT_MAX_INSTRUMENTS) {
+        ITInstrument* inst = &song->instruments[actual_inst];
+        nv->vol_env_active = (inst->vol_env.flags & ENV_FLAG_ON) && (inst->vol_env.num_nodes > 0);
+        nv->vol_env_tick = 0;
+        nv->vol_env_val = nv->vol_env_active ? (it_mixer_evaluate_envelope(&inst->vol_env, 0, false) / 64.0f) : 1.0f;
+
+        nv->pan_env_active = (inst->pan_env.flags & ENV_FLAG_ON) && (inst->pan_env.num_nodes > 0);
+        nv->pan_env_tick = 0;
+        nv->pan_env_val = nv->pan_env_active ? ((it_mixer_evaluate_envelope(&inst->pan_env, 0, false) - 32.0f) / 32.0f) : 0.0f;
+
+        nv->pitch_env_active = (inst->pitch_env.flags & ENV_FLAG_ON) && (inst->pitch_env.num_nodes > 0);
+        nv->pitch_env_tick = 0;
+        nv->pitch_env_val = 0.0f;
+    } else {
+        nv->vol_env_active = false;
+        nv->vol_env_val = 1.0f;
+        nv->pan_env_active = false;
+        nv->pan_env_val = 0.0f;
+        nv->pitch_env_active = false;
+    }
 }
 
 void it_player_key_off(int host_channel) {
@@ -293,17 +316,54 @@ static void process_row(void) {
         } else if (cell->effect == 'V') {
             s_player.global_volume = cell->param;
             s_player.song->global_vol = cell->param;
+        } else if (cell->effect == 'W') {
+            /* Wxx: Global volume slide */
+            if (cell->param > 0) hc->vol_slide_mem = cell->param;
         } else if (cell->effect == 'M') {
             s_player.song->channel_vol[ch] = (cell->param <= 64) ? cell->param : 64;
+        } else if (cell->effect == 'D') {
+            /* Dxy: Volume Slide */
+            if (cell->param > 0) hc->vol_slide_mem = cell->param;
+            /* Fine volume slide check (DFy or DxF) */
+            if ((cell->param & 0x0F) == 0x0F && (cell->param & 0xF0) > 0) {
+                int delta = (cell->param >> 4);
+                int nv = s_player.song->channel_vol[ch] + delta;
+                s_player.song->channel_vol[ch] = IT_CLAMP(nv, 0, 64);
+            } else if ((cell->param & 0xF0) == 0xF0 && (cell->param & 0x0F) > 0) {
+                int delta = (cell->param & 0x0F);
+                int nv = s_player.song->channel_vol[ch] - delta;
+                s_player.song->channel_vol[ch] = IT_CLAMP(nv, 0, 64);
+            }
+        } else if (cell->effect == 'H') {
+            /* Hxy: Vibrato */
+            if (cell->param > 0) {
+                if (cell->param & 0xF0) hc->vib_speed = (cell->param >> 4);
+                if (cell->param & 0x0F) hc->vib_depth = (cell->param & 0x0F);
+            }
+        } else if (cell->effect == 'K') {
+            /* Kxy: Vibrato + Volume Slide */
+            if (cell->param > 0) hc->vol_slide_mem = cell->param;
+        } else if (cell->effect == 'L') {
+            /* Lxy: Tone Portamento + Volume Slide */
+            if (cell->param > 0) hc->vol_slide_mem = cell->param;
         } else if (cell->effect == 'X') {
-            s_player.song->channel_pan[ch] = cell->param / 2;
-        } else if (cell->effect == 'S' && (cell->param & 0xF0) == 0x80) {
-            /* S8x: Set Panning */
-            s_player.song->channel_pan[ch] = (cell->param & 0x0F) * 4;
+            /* Xxx: Set Panning (0..255) */
+            s_player.song->channel_pan[ch] = (cell->param * 64) / 255;
+            float pan_norm = IT_CLAMP(((float)cell->param - 128.0f) / 128.0f, -1.0f, 1.0f);
             for (int i = 0; i < IT_MAX_VIRTUAL_CHANNELS; i++) {
                 ITVoice* v = it_mixer_get_voice(i);
                 if (v && v->active && v->host_channel == ch) {
-                    v->pan_final = ((float)s_player.song->channel_pan[ch] - 32.0f) / 32.0f;
+                    v->pan_final = pan_norm;
+                }
+            }
+        } else if (cell->effect == 'S' && (cell->param & 0xF0) == 0x80) {
+            /* S8x: Set Panning */
+            s_player.song->channel_pan[ch] = (cell->param & 0x0F) * 4;
+            float pan_norm = IT_CLAMP(((float)s_player.song->channel_pan[ch] - 32.0f) / 32.0f, -1.0f, 1.0f);
+            for (int i = 0; i < IT_MAX_VIRTUAL_CHANNELS; i++) {
+                ITVoice* v = it_mixer_get_voice(i);
+                if (v && v->active && v->host_channel == ch) {
+                    v->pan_final = pan_norm;
                 }
             }
         } else if (cell->effect == 'Z') {
@@ -320,8 +380,8 @@ static void process_row(void) {
 
         /* Tone Portamento ('G') handling */
         bool portamento_active = false;
-        if (cell->effect == 'G') {
-            if (cell->param > 0) hc->portamento_mem = cell->param;
+        if (cell->effect == 'G' || cell->effect == 'L') {
+            if (cell->effect == 'G' && cell->param > 0) hc->portamento_mem = cell->param;
             if (cell->note > 0) {
                 /* Find active voice on this channel */
                 ITVoice* active_v = NULL;
@@ -340,7 +400,6 @@ static void process_row(void) {
                     hc->portamento_target_freq = target_freq;
 
                     if (hc->portamento_mem == 0xFF) {
-                        /* Instant portamento */
                         active_v->current_freq = target_freq;
                         active_v->sample_step = (double)target_freq / (double)s_player.sample_rate;
                     }
@@ -352,6 +411,18 @@ static void process_row(void) {
         if (cell->note > 0 && !portamento_active) {
             int vol = (cell->volume > 0 && cell->volume <= 65) ? (cell->volume - 1) : -1;
             it_player_trigger_note(ch, cell->note, cell->instrument, vol);
+
+            /* Sample Offset 'Oxx' */
+            if (cell->effect == 'O' && cell->param > 0) {
+                uint32_t offset = (uint32_t)cell->param * 256;
+                for (int i = 0; i < IT_MAX_VIRTUAL_CHANNELS; i++) {
+                    ITVoice* v = it_mixer_get_voice(i);
+                    if (v && v->active && v->host_channel == ch && !v->background) {
+                        v->sample_pos = (double)offset;
+                        break;
+                    }
+                }
+            }
         }
     }
 }
@@ -361,6 +432,31 @@ static void process_tick(void) {
     for (int i = 0; i < IT_MAX_VIRTUAL_CHANNELS; i++) {
         ITVoice* v = it_mixer_get_voice(i);
         if (!v || !v->active) continue;
+
+        int inst_idx = v->inst_num;
+        if ((s_player.song->flags & SONG_FLAG_INSTRUMENTS) && inst_idx > 0 && inst_idx < IT_MAX_INSTRUMENTS) {
+            const ITInstrument* inst = &s_player.song->instruments[inst_idx];
+            if (v->vol_env_active) {
+                v->vol_env_tick++;
+                v->vol_env_val = it_mixer_evaluate_envelope(&inst->vol_env, v->vol_env_tick, v->note_off) / 64.0f;
+                if (v->note_off && v->vol_env_val <= 0.001f) {
+                    v->active = false;
+                    continue;
+                }
+            }
+            if (v->pan_env_active) {
+                v->pan_env_tick++;
+                v->pan_env_val = (it_mixer_evaluate_envelope(&inst->pan_env, v->pan_env_tick, v->note_off) - 32.0f) / 32.0f;
+            }
+        }
+
+        if ((v->note_off || v->note_fade) && v->fadeout_rate > 0) {
+            v->fadeout_count -= (int32_t)v->fadeout_rate;
+            if (v->fadeout_count <= 0) {
+                v->active = false;
+                continue;
+            }
+        }
 
         int ch = v->host_channel;
         ITHostChannel* hc = &s_player.channels[ch];
@@ -377,11 +473,39 @@ static void process_tick(void) {
             }
             v->sample_step = (double)v->current_freq / (double)s_player.sample_rate;
         }
+    }
 
-        if (v->note_fade && v->fadeout_rate > 0) {
-            v->fadeout_count -= (int32_t)v->fadeout_rate;
-            if (v->fadeout_count <= 0) {
-                v->active = false;
+    /* Process channel-level tick effects (Vibrato, Volume slides) */
+    for (int ch = 0; ch < IT_MAX_CHANNELS; ch++) {
+        ITHostChannel* hc = &s_player.channels[ch];
+
+        /* Vibrato tick oscillation */
+        if (hc->vib_depth > 0) {
+            hc->vib_pos = (hc->vib_pos + hc->vib_speed * 4) & 0xFF;
+            float vib_sin = sinf((float)hc->vib_pos * (float)M_PI / 128.0f);
+            float vib_factor = 1.0f + vib_sin * ((float)hc->vib_depth / 64.0f) * 0.04f;
+            for (int i = 0; i < IT_MAX_VIRTUAL_CHANNELS; i++) {
+                ITVoice* v = it_mixer_get_voice(i);
+                if (v && v->active && v->host_channel == ch) {
+                    v->current_freq = v->base_freq * vib_factor;
+                    v->sample_step = (double)v->current_freq / (double)s_player.sample_rate;
+                }
+            }
+        }
+
+        /* Volume slides (D, K, L) */
+        if (hc->vol_slide_mem > 0) {
+            uint8_t p = hc->vol_slide_mem;
+            if ((p & 0xF0) > 0 && (p & 0x0F) == 0) {
+                /* Slide up */
+                int delta = (p >> 4);
+                int nv = s_player.song->channel_vol[ch] + delta;
+                s_player.song->channel_vol[ch] = IT_CLAMP(nv, 0, 64);
+            } else if ((p & 0x0F) > 0 && (p & 0xF0) == 0) {
+                /* Slide down */
+                int delta = (p & 0x0F);
+                int nv = s_player.song->channel_vol[ch] - delta;
+                s_player.song->channel_vol[ch] = IT_CLAMP(nv, 0, 64);
             }
         }
     }

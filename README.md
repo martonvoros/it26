@@ -7,9 +7,10 @@
 [![MIDI](https://img.shields.io/badge/MIDI%20Controllers-655%2B%20Supported-orange.svg)]()
 [![License](https://img.shields.io/badge/License-GPLv2%2BMIT-lightgrey.svg)]()
 
-> **ImpulseTracker was a standout MS-DOS sequencer with real influence on modern electronic music.**  
+> **Impulse Tracker was a standout MS-DOS sequencer with real influence on modern electronic music.**  
 >  
-> I’ve made a clean Windows/Mac/Linux port that scales on modern monitors and sounds correct. *(and even supports your modern MIDI controller)*
+> **IT26 Modern Mod & 64-Bit Port created by Marton Voros aka C41**  
+> *(Original 1995 MS-DOS Impulse Tracker created by Jeffrey Lim)*
 
 ---
 
@@ -21,7 +22,7 @@
 
 In 1995, **Jeffrey Lim** released **Impulse Tracker 2.14** for MS-DOS. It became the weapon of choice for a generation of underground electronic musicians, game composers, and demoscene legends. The lightning-fast keyboard workflow, laser-precise tick timing, and Jeffrey Lim's signature **resonant 24dB state-variable lowpass filter (`Zxx`)** defined the sound of 90s Drum & Bass, Jungle, Acid Techno, and Game Soundtracks (like *Unreal Tournament* and *Deus Ex*).
 
-**Impulse Tracker Modern (IT26)** is a clean, native **C99** and **SDL3** recreation engineered from the ground up for modern 64-bit platforms. It preserves the authentic factory Impulse Tracker 2.14 layout, typography, and mathematical audio behavior while delivering high-DPI scaling, seamless tactile mouse interaction, plug-and-play support for **655 modern USB/MIDI controllers**, and an interactive **Quickstart Wizard** for modern electronic music producers.
+**Impulse Tracker Modern (IT26)** is a clean, native **C99** and **SDL3** modern modification and port engineered from the ground up for 64-bit platforms by **Marton Voros aka C41**. It preserves the authentic factory Impulse Tracker 2.14 layout, typography, and mathematical audio behavior while delivering high-DPI scaling, seamless tactile mouse interaction, plug-and-play support for **655 modern USB/MIDI controllers**, and an interactive **Quickstart Wizard** for modern electronic music producers.
 
 ---
 
@@ -185,21 +186,43 @@ cmake --build build
 
 ---
 
-## 📜 Credits & Heritage
-* **Original Impulse Tracker**: Designed and programmed by **Jeffrey Lim** (1995–2014).
+## 📜 Historical Heritage & Credits
+* **IT26 Modern Mod & Port**: Conceived and engineered by **Marton Voros aka C41** (64-bit architecture, trapezoidal SVF resonant audio engine, high-DPI typography, modern UI, and 655+ MIDI profiles).
+* **Original Impulse Tracker**: Conceived, designed, and programmed by **Jeffrey Lim** between 1995 and 2014 in Australia for MS-DOS.
+* **Original Source Code**: Released by Jeffrey Lim under the **BSD 3-Clause License** in 2014 (on BitBucket) and 2024 (on GitHub) alongside his retrospective series *"20 Years of Impulse Tracker"*.
 * **Music in Demos**:
   - Alexander David (DJ-Aldav) — *"House Of Fame"*
   - Bacter vs Saga Musix — *"Funky Junkie"*
   - Silicon / Chris Jarvis — *"Twilight Tears"*
   - Elwood (Jussi-Matti Salmela) — *"Dead Lock"*
-  - Michiel van den Bos — *"Foregone Destruction"*
-  - Skaven (Peter Hajba) — *"Windfall"*
+  - Michiel van den Bos — *"Foregone Destruction"* (Unreal Tournament)
+  - Skaven (Peter Hajba) — *"Winds of Fjords"* & *"Catch That Goblin"*
   - Surasshu (Steven Velema) — *"Eek"*
-* **Fonts**: JetBrains Mono (SIL Open Font License).
-* **Libraries**: SDL3 (zlib license), stb_truetype & stb_image (public domain).
+* **Fonts**: JetBrains Mono (SIL Open Font License v1.1).
+* **Libraries**: SDL3 (zlib license), stb_truetype & stb_image (public domain / MIT).
 
 ---
 
-## 🤝 Contributing & License
-Contributions, feedback, and bug reports are welcome!  
-Distributed under the GNU General Public License v2 (GPL-2.0) and MIT License for modular components.
+## 🤝 Licenses & Legal Notices
+
+### Original Impulse Tracker Source Code License
+```text
+BSD 3-Clause License
+Copyright (c) 2014, 2024, Jeffrey Lim. All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice,
+   this list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+3. Neither the name of the copyright holder nor the names of its
+   contributors may be used to endorse or promote products derived from
+   this software without specific prior written permission.
+```
+
+### IT26 Application
+Distributed under the **GNU General Public License v2+ (GPL-2.0+)** in full harmony with tracker community open-source standards and the original Impulse Tracker BSD 3-Clause license. All original rights and trademarks of Impulse Tracker belong to Jeffrey Lim.
+

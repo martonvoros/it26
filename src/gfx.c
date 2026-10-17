@@ -39,9 +39,9 @@ static SDL_Texture* create_font_texture(const unsigned char* font_data, stbtt_ba
 
     stbtt_BakeFontBitmap(font_data, 0, pixel_size, temp_bitmap, ATLAS_W, ATLAS_H, 32, 96, cdata);
 
-    /* Convert A8 to RGBA32 with authentic 1-bit high-DPI threshold (>= 32):
-     * - ZERO anti-aliasing / smoothing halo: every pixel is 100% solid foreground color
-     * - Threshold 32 guarantees complete stroke connectivity across curves and diagonals
+    /* High-contrast solid typography with smooth sub-pixel stroke connectivity:
+     * - Zero broken letters or pixel holes
+     * - Crisp, punchy readability with solid stems and smooth curves
      */
     uint32_t* rgba = (uint32_t*)malloc(ATLAS_W * ATLAS_H * sizeof(uint32_t));
     if (!rgba) {
@@ -50,8 +50,18 @@ static SDL_Texture* create_font_texture(const unsigned char* font_data, stbtt_ba
     }
 
     for (int i = 0; i < ATLAS_W * ATLAS_H; i++) {
-        uint32_t a = (temp_bitmap[i] >= 32) ? 255 : 0;
-        rgba[i] = (a << 24) | 0x00FFFFFF;
+        uint8_t raw = temp_bitmap[i];
+        uint8_t a;
+        if (raw < 12) {
+            a = 0;
+        } else if (raw > 150) {
+            a = 255;
+        } else {
+            float norm = (float)(raw - 12) / 138.0f;
+            norm = powf(norm, 0.75f);
+            a = (uint8_t)(norm * 255.0f);
+        }
+        rgba[i] = ((uint32_t)a << 24) | 0x00FFFFFF;
     }
     free(temp_bitmap);
 
@@ -59,7 +69,7 @@ static SDL_Texture* create_font_texture(const unsigned char* font_data, stbtt_ba
     if (tex) {
         SDL_UpdateTexture(tex, NULL, rgba, ATLAS_W * sizeof(uint32_t));
         SDL_SetTextureBlendMode(tex, SDL_BLENDMODE_BLEND);
-        SDL_SetTextureScaleMode(tex, SDL_SCALEMODE_NEAREST);
+        SDL_SetTextureScaleMode(tex, SDL_SCALEMODE_LINEAR);
     }
     free(rgba);
     return tex;

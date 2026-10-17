@@ -16,23 +16,37 @@ void it_page_help_init(void) {
     s_scroll_y = 0;
 }
 
+void it_page_help_set_tab(int tab_index) {
+    if (tab_index >= 0 && tab_index < it_help_get_section_count()) {
+        s_active_tab = tab_index;
+        s_scroll_y = 0;
+    }
+}
+
+int it_page_help_get_tab(void) {
+    return s_active_tab;
+}
+
 void it_page_help_render(void) {
     int screen_w = it_gfx_get_logical_width();
     int screen_h = it_gfx_get_logical_height();
 
-    /* Tabs */
+    /* Dynamic Width Tabs */
     int tab_x = 10;
     int tab_y = 62;
-    int tab_w = 110;
     int tab_h = 28;
 
     int num_sections = it_help_get_section_count();
+    int cur_tx = tab_x;
     for (int i = 0; i < num_sections; i++) {
         const ITHelpSection* sec = it_help_get_section(i);
-        if (it_widget_tab(tab_x + i * (tab_w + 4), tab_y, tab_w, tab_h, sec->tab_title, s_active_tab == i)) {
+        int tw = it_gfx_text_width(sec->tab_title) + 20;
+        if (tw < 70) tw = 70;
+        if (it_widget_tab(cur_tx, tab_y, tw, tab_h, sec->tab_title, s_active_tab == i)) {
             s_active_tab = i;
             s_scroll_y = 0;
         }
+        cur_tx += tw + 4;
     }
 
     /* Close Button */
@@ -86,12 +100,35 @@ void it_page_help_render(void) {
 
         it_gfx_reset_clip();
 
+        /* Calculate exact content height based on newline count */
+        int num_lines = 1;
+        for (const char* p = cur_sec->content; *p; p++) {
+            if (*p == '\n') num_lines++;
+        }
+        int total_content_h = 60 + num_lines * 19;
+        int max_scroll = total_content_h - (panel_h - 40);
+        if (max_scroll < 0) max_scroll = 0;
+
         /* Mouse Wheel Scroll in help */
         ITUIState* ui = it_ui_get_state();
         if (ui->wheel_y != 0) {
-            s_scroll_y -= ui->wheel_y * 30;
+            s_scroll_y -= ui->wheel_y * 36;
             if (s_scroll_y < 0) s_scroll_y = 0;
-            if (s_scroll_y > 400) s_scroll_y = 400;
+            if (s_scroll_y > max_scroll) s_scroll_y = max_scroll;
+        }
+
+        /* Scrollbar indicator on right side if scrollable */
+        if (max_scroll > 0) {
+            int sb_x = panel_x + panel_w - 14;
+            int sb_y = panel_y + 14;
+            int sb_h = panel_h - 28;
+            it_gfx_fill_rect(sb_x, sb_y, 6, sb_h, (ITColor){ 16, 22, 32, 255 });
+            float thumb_ratio = (float)(panel_h - 40) / (float)total_content_h;
+            if (thumb_ratio < 0.1f) thumb_ratio = 0.1f;
+            int thumb_h = (int)(thumb_ratio * (float)sb_h);
+            float scroll_ratio = (float)s_scroll_y / (float)max_scroll;
+            int thumb_y = sb_y + (int)(scroll_ratio * (float)(sb_h - thumb_h));
+            it_gfx_fill_rect(sb_x, thumb_y, 6, thumb_h, IT_COL_CYAN_DIM);
         }
     }
 
@@ -102,8 +139,18 @@ void it_page_help_render(void) {
     ITConfig* cfg = it_config_get();
     it_widget_checkbox(20, footer_y + 10, "Show this Help on Startup", &cfg->show_help_on_startup);
 
+    /* Quick jump buttons to About & License */
+    if (it_widget_button(270, footer_y + 6, 120, 28, "About IT26", s_active_tab == 5)) {
+        s_active_tab = 5;
+        s_scroll_y = 0;
+    }
+    if (it_widget_button(396, footer_y + 6, 120, 28, "View License", s_active_tab == 6)) {
+        s_active_tab = 6;
+        s_scroll_y = 0;
+    }
+
     /* Load Official Demo Song button */
-    if (it_widget_button(340, footer_y + 6, 260, 28, "Load Official Demo (TUTE.IT)", false)) {
+    if (it_widget_button(524, footer_y + 6, 260, 28, "Load Official Demo (TUTE.IT)", false)) {
         ITSong* song = it_player_get_song();
         if (song) {
             if (it_load_file(song, "reference/impulse-tracker/Tutorial/TUTE.IT")) {
@@ -114,7 +161,7 @@ void it_page_help_render(void) {
         }
     }
 
-    if (it_widget_button(screen_w - 240, footer_y + 6, 220, 28, "Start Tracking Now [F2]", true)) {
+    if (it_widget_button(screen_w - 220, footer_y + 6, 200, 28, "Start Tracking Now [F2]", true)) {
         it_ui_set_page(PAGE_PATTERN);
     }
 }

@@ -47,6 +47,9 @@ typedef struct {
     float flt_low[2];
     float flt_band[2];
 
+    /* De-click ramping */
+    float ramp_in;
+
     /* Sample vibrato */
     uint8_t smp_vib_pos;
     uint8_t smp_vib_speed;
@@ -69,6 +72,7 @@ ITVoice* it_mixer_alloc_voice(int host_channel, int nna);
 void it_mixer_stop_voice(ITVoice* v);
 void it_mixer_stop_channel(int host_channel);
 
+float it_mixer_evaluate_envelope(const ITEnvelope* env, uint16_t tick, bool key_off);
 void it_mixer_render(ITSong* song, float* out_interleaved, size_t num_frames);
 
 ITVoice* it_mixer_get_voice(int index);

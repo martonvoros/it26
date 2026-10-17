@@ -16,13 +16,13 @@ BEGIN
     BEGIN
         BLOCK "040904b0"
         BEGIN
-            VALUE "CompanyName",      "Jeffrey Lim / OpenMPT / IT Modern Community\0"
-            VALUE "FileDescription",  "Impulse Tracker 2.14 Modern Workstation\0"
+            VALUE "CompanyName",      "IT26 Modern Workstation\0"
+            VALUE "FileDescription",  "IT26 Modern Tracker Workstation\0"
             VALUE "FileVersion",      "1.0.0.0\0"
-            VALUE "InternalName",     "impulse-tracker\0"
-            VALUE "LegalCopyright",   "Original Impulse Tracker (C) 1995-2014 Jeffrey Lim\0"
+            VALUE "InternalName",     "it26\0"
+            VALUE "LegalCopyright",   "Original Impulse Tracker (C) 1995-2024 Jeffrey Lim (BSD-3-Clause) | IT26 (C) 2026\0"
             VALUE "OriginalFilename", "impulse-tracker.exe\0"
-            VALUE "ProductName",      "Impulse Tracker Modern\0"
+            VALUE "ProductName",      "IT26\0"
             VALUE "ProductVersion",   "1.0.0.0\0"
         END
     END
