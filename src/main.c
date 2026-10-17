@@ -16,7 +16,8 @@ int main(int argc, char* argv[]) {
     /* Handle command line information flags */
     if (argc > 1 && argv[1]) {
         if (strcmp(argv[1], "--version") == 0 || strcmp(argv[1], "-v") == 0) {
-            printf("IT26 Modern Workstation (64-bit)\n");
+            printf("IT26 Modern Workstation v1.0.4 (64-bit)\n");
+            printf("Created by Marton Voros aka C41\n");
             printf("Conceived and created in honor of Jeffrey Lim's Impulse Tracker (1995-2024)\n");
             return 0;
         }
