@@ -5,6 +5,7 @@
 #include "fmt_it.h"
 #include "player.h"
 #include "demo_songs.h"
+#include "export.h"
 
 #define MAX_DIR_ENTRIES 128
 
@@ -196,7 +197,8 @@ static void render_disk_tab(int screen_w, int screen_h, ITUIState* ui) {
         }
     }
 
-    if (it_widget_button(list_x + 180, act_y, 160, 30, "Save as .IT", false)) {
+    int btn_x = list_x + 160;
+    if (it_widget_button(btn_x, act_y, 110, 30, "Save as .IT", false)) {
         ITSong* song = it_player_get_song();
         if (song) {
             char save_path[1024];
@@ -207,8 +209,32 @@ static void render_disk_tab(int screen_w, int screen_h, ITUIState* ui) {
             }
         }
     }
-
-    if (it_widget_button(list_x + 360, act_y, 120, 30, "Refresh", false)) {
+    btn_x += 114;
+    if (it_widget_button(btn_x, act_y, 110, 30, "Export WAV", false)) {
+        ITSong* song = it_player_get_song();
+        if (song) {
+            char wav_path[1024];
+            snprintf(wav_path, sizeof(wav_path), "%s/export_song.wav", s_current_path);
+            if (it_export_wav_song(song, wav_path)) {
+                it_ui_set_status("Exported Full Song to WAV: %s", wav_path);
+                refresh_dir();
+            }
+        }
+    }
+    btn_x += 114;
+    if (it_widget_button(btn_x, act_y, 110, 30, "Export MIDI", false)) {
+        ITSong* song = it_player_get_song();
+        if (song) {
+            char mid_path[1024];
+            snprintf(mid_path, sizeof(mid_path), "%s/export_song.mid", s_current_path);
+            if (it_export_midi_song(song, mid_path)) {
+                it_ui_set_status("Exported Full Song to MIDI: %s", mid_path);
+                refresh_dir();
+            }
+        }
+    }
+    btn_x += 114;
+    if (it_widget_button(btn_x, act_y, 90, 30, "Refresh", false)) {
         refresh_dir();
     }
 }
@@ -279,7 +305,7 @@ static void render_demos_tab(int screen_w, int screen_h, ITUIState* ui) {
         it_gfx_draw_text(rx + 20, ry, sel_info->description, IT_COL_WHITE);
         ry += 32;
 
-        it_gfx_draw_text(rx + 20, ry, "Synthesized Drum Kit Elements:", IT_COL_GRAY);
+        it_gfx_draw_text(rx + 20, ry, "Sound Blaster 16+ Orchestration & Real Samples:", IT_COL_GRAY);
         ry += 20;
         it_gfx_draw_text(rx + 20, ry, sel_info->drum_kit_info, IT_COL_WHITE);
         ry += 40;
@@ -287,49 +313,156 @@ static void render_demos_tab(int screen_w, int screen_h, ITUIState* ui) {
         it_gfx_draw_line(rx + 20, ry, rx + rw - 40, ry, IT_COL_PANEL_BORDER);
         ry += 24;
 
-        /* BUTTON 1: Drums only (ready to write on) */
-        it_gfx_draw_text_bold(rx + 20, ry, "OPTION A: DRUM GROOVE ONLY (READY TO WRITE OVER)", IT_COL_GREEN);
-        ry += 22;
-        it_gfx_draw_text(rx + 20, ry, "* Loads drum kit onto channels 1-4 with a tight looping groove.", IT_COL_WHITE);
-        ry += 18;
-        it_gfx_draw_text(rx + 20, ry, "* Channels 5-64 remain COMPLETELY OPEN for you to compose music on!", IT_COL_WHITE);
+        /* BUTTON 1: Load and Play Complete Authentic IT Track */
+        it_gfx_draw_text_bold(rx + 20, ry, "AUTHENTIC SOUND BLASTER 16+ TRACK (100% REAL SCENE MASTERPIECE)", IT_COL_YELLOW);
+        ry += 20;
+        it_gfx_draw_text(rx + 20, ry, "* Complete multi-channel arrangement: real drums, bassline, chords & melody.", IT_COL_WHITE);
         ry += 26;
 
-        if (it_widget_button(rx + 20, ry, 360, 36, "[+] LOAD DRUM BEAT & WRITE MUSIC", true)) {
+        if (it_widget_button(rx + 20, ry, 420, 40, "[▶] LOAD & PLAY COMPLETE REAL TRACK", true)) {
             ITSong* song = it_player_get_song();
-            if (song && it_demo_load_drum_groove(song, (ITGenreId)s_selected_genre)) {
-                it_ui_set_status("Loaded %s drum groove! Compose on Channels 5-64.", sel_info->name);
+            if (song && it_demo_load_full_song(song, (ITGenreId)s_selected_genre)) {
+                it_ui_set_status("Loaded %s (%s)!", sel_info->name, song->name);
+                it_ui_set_page(PAGE_PATTERN);
+                it_player_play_song();
+            }
+        }
+        ry += 54;
+
+        /* BUTTON 2: Open in Edit Mode */
+        if (it_widget_button(rx + 20, ry, 420, 34, "[✎] Load & Open in Pattern Editor [Space to Edit]", false)) {
+            ITSong* song = it_player_get_song();
+            if (song && it_demo_load_full_song(song, (ITGenreId)s_selected_genre)) {
+                it_ui_set_status("Loaded %s for editing!", sel_info->name);
                 it_ui_set_page(PAGE_PATTERN);
                 ui->edit_mode = true;
                 it_player_play_song();
             }
         }
-        ry += 52;
-
-        /* BUTTON 2: Full Demo Song */
-        it_gfx_draw_text_bold(rx + 20, ry, "OPTION B: FULL ARRANGED MUSICAL DEMO TRACK", IT_COL_YELLOW);
-        ry += 22;
-        it_gfx_draw_text(rx + 20, ry, "* Complete track with drums, resonant swept bassline, leads & arps.", IT_COL_WHITE);
-        ry += 26;
-
-        if (it_widget_button(rx + 20, ry, 360, 36, "[>] LOAD FULL REAL IT TRACK & PLAY", false)) {
-            ITSong* song = it_player_get_song();
-            if (song && it_demo_load_full_song(song, (ITGenreId)s_selected_genre)) {
-                it_ui_set_status("Loaded full %s demo song!", sel_info->name);
-                it_ui_set_page(PAGE_PATTERN);
-                it_player_play_song();
-            }
-        }
-        ry += 52;
+        ry += 48;
 
         /* BUTTON 3: Insert Pattern into active song */
-        if (it_widget_button(rx + 20, ry, 360, 30, "+ Insert Drum Pattern into Active Song", false)) {
+        if (it_widget_button(rx + 20, ry, 420, 30, "+ Copy Authentic Pattern & Samples into Active Song", false)) {
             ITSong* song = it_player_get_song();
             if (song) {
                 int cur_pat = it_player_get_pattern();
                 it_demo_insert_pattern(song, cur_pat, (ITGenreId)s_selected_genre);
-                it_ui_set_status("Inserted %s drum groove into Pattern %02d!", sel_info->name, cur_pat);
+                it_ui_set_status("Copied %s pattern & samples into Pattern %02d!", sel_info->name, cur_pat);
                 it_ui_set_page(PAGE_PATTERN);
+            }
+        }
+    }
+}
+
+static void render_export_tab(int screen_w, int screen_h, ITUIState* ui) {
+    (void)ui;
+    int panel_y = 94;
+    int panel_w = screen_w - 20;
+    int panel_h = screen_h - panel_y - 28;
+
+    it_widget_panel(10, panel_y, panel_w, panel_h, "Audio & MIDI Export Suite (WAV PCM 44.1kHz / Standard MIDI)");
+
+    ITSong* song = it_player_get_song();
+    int cur_pat = it_player_get_pattern();
+    int col_w = (panel_w - 50) / 2;
+
+    /* LEFT COLUMN: WAV AUDIO RENDERING */
+    int lx = 25;
+    int ly = panel_y + 36;
+    it_gfx_draw_text_bold(lx, ly, "1. WAV AUDIO RENDERING (44.1kHz 16-BIT STEREO PCM)", IT_COL_YELLOW);
+    ly += 22;
+    it_gfx_draw_text(lx, ly, "Offline studio render with resonant filters, slides, and stereo panning.", IT_COL_GRAY);
+    ly += 30;
+
+    /* Box 1: Loop / Pattern */
+    it_gfx_draw_rect(lx, ly, col_w, 140, IT_COL_PANEL_BORDER);
+    it_gfx_draw_text_bold(lx + 16, ly + 14, "CURRENT PATTERN LOOP -> WAV", IT_COL_WHITE);
+    char pat_info[128];
+    snprintf(pat_info, sizeof(pat_info), "Pattern %02d (%d rows) at %d BPM, Speed %d",
+             cur_pat, (song && cur_pat < IT_MAX_PATTERNS) ? song->patterns[cur_pat].rows : 64,
+             it_player_get_tempo(), it_player_get_speed());
+    it_gfx_draw_text(lx + 16, ly + 36, pat_info, IT_COL_CYAN);
+    it_gfx_draw_text(lx + 16, ly + 56, "Target File: export_loop.wav", IT_COL_GRAY);
+
+    if (it_widget_button(lx + 16, ly + 86, col_w - 32, 38, "[▶] RENDER PATTERN LOOP TO WAV", true)) {
+        if (song) {
+            char path[1024];
+            snprintf(path, sizeof(path), "%s/export_loop.wav", s_current_path);
+            if (it_export_wav_loop(song, cur_pat, path)) {
+                it_ui_set_status("SUCCESS: Exported Pattern %02d to WAV: %s", cur_pat, path);
+                refresh_dir();
+            } else {
+                it_ui_set_status("ERROR: Failed to write WAV file to %s", path);
+            }
+        }
+    }
+    ly += 160;
+
+    /* Box 2: Full Song */
+    it_gfx_draw_rect(lx, ly, col_w, 140, IT_COL_PANEL_BORDER);
+    it_gfx_draw_text_bold(lx + 16, ly + 14, "FULL PROJECT MASTER -> WAV", IT_COL_WHITE);
+    char song_info[128];
+    snprintf(song_info, sizeof(song_info), "All %d Orders in Sequence | Song: %.20s",
+             song ? song->order_count : 0, song ? song->name : "Untitled");
+    it_gfx_draw_text(lx + 16, ly + 36, song_info, IT_COL_CYAN);
+    it_gfx_draw_text(lx + 16, ly + 56, "Target File: export_song.wav", IT_COL_GRAY);
+
+    if (it_widget_button(lx + 16, ly + 86, col_w - 32, 38, "[▶] RENDER FULL SONG MASTER TO WAV", false)) {
+        if (song) {
+            char path[1024];
+            snprintf(path, sizeof(path), "%s/export_song.wav", s_current_path);
+            if (it_export_wav_song(song, path)) {
+                it_ui_set_status("SUCCESS: Exported Full Song Master to WAV: %s", path);
+                refresh_dir();
+            } else {
+                it_ui_set_status("ERROR: Failed to write WAV file to %s", path);
+            }
+        }
+    }
+
+    /* RIGHT COLUMN: MIDI SEQUENCER EXPORT */
+    int rx = lx + col_w + 20;
+    int ry = panel_y + 36;
+    it_gfx_draw_text_bold(rx, ry, "2. MIDI SEQUENCER EXPORT (STANDARD MIDI FILE FORMAT 1)", IT_COL_GREEN);
+    ry += 22;
+    it_gfx_draw_text(rx, ry, "Export tracks to import into FL Studio, Ableton Live, Logic Pro, Reaper, Cubase.", IT_COL_GRAY);
+    ry += 30;
+
+    /* Box 3: Loop / Pattern MIDI */
+    it_gfx_draw_rect(rx, ry, col_w, 140, IT_COL_PANEL_BORDER);
+    it_gfx_draw_text_bold(rx + 16, ry + 14, "CURRENT PATTERN LOOP -> MIDI (.MID)", IT_COL_WHITE);
+    it_gfx_draw_text(rx + 16, ry + 36, "Exports 16 synchronous tracks with pitch & velocity data.", IT_COL_CYAN);
+    it_gfx_draw_text(rx + 16, ry + 56, "Target File: export_loop.mid", IT_COL_GRAY);
+
+    if (it_widget_button(rx + 16, ry + 86, col_w - 32, 38, "[♬] EXPORT PATTERN LOOP TO MIDI (.MID)", false)) {
+        if (song) {
+            char path[1024];
+            snprintf(path, sizeof(path), "%s/export_loop.mid", s_current_path);
+            if (it_export_midi_loop(song, cur_pat, path)) {
+                it_ui_set_status("SUCCESS: Exported Pattern %02d to MIDI: %s", cur_pat, path);
+                refresh_dir();
+            } else {
+                it_ui_set_status("ERROR: Failed to write MIDI file to %s", path);
+            }
+        }
+    }
+    ry += 160;
+
+    /* Box 4: Full Song MIDI */
+    it_gfx_draw_rect(rx, ry, col_w, 140, IT_COL_PANEL_BORDER);
+    it_gfx_draw_text_bold(rx + 16, ry + 14, "FULL PROJECT SONG -> MIDI (.MID)", IT_COL_WHITE);
+    it_gfx_draw_text(rx + 16, ry + 36, "Complete arrangement timeline across all patterns and order list.", IT_COL_CYAN);
+    it_gfx_draw_text(rx + 16, ry + 56, "Target File: export_song.mid", IT_COL_GRAY);
+
+    if (it_widget_button(rx + 16, ry + 86, col_w - 32, 38, "[♬] EXPORT FULL SONG TO MIDI (.MID)", false)) {
+        if (song) {
+            char path[1024];
+            snprintf(path, sizeof(path), "%s/export_song.mid", s_current_path);
+            if (it_export_midi_song(song, path)) {
+                it_ui_set_status("SUCCESS: Exported Full Song to MIDI: %s", path);
+                refresh_dir();
+            } else {
+                it_ui_set_status("ERROR: Failed to write MIDI file to %s", path);
             }
         }
     }
@@ -343,14 +476,16 @@ void it_page_files_render(void) {
     /* Navigation Tabs */
     int tab_x = 10;
     int tab_y = 62;
-    int tab_w = 200;
     int tab_h = 28;
 
-    if (it_widget_tab(tab_x, tab_y, tab_w, tab_h, "Local Disk Browser", s_tab == 0)) {
+    if (it_widget_tab(tab_x, tab_y, 160, tab_h, "Local Disk Browser", s_tab == 0)) {
         s_tab = 0;
     }
-    if (it_widget_tab(tab_x + tab_w + 4, tab_y, 400, tab_h, "Real IT Genre Tracks & Drum Grooves (20 Styles)", s_tab == 1)) {
+    if (it_widget_tab(tab_x + 164, tab_y, 340, tab_h, "Real IT Genre Demos (20 Iconic Styles)", s_tab == 1)) {
         s_tab = 1;
+    }
+    if (it_widget_tab(tab_x + 164 + 344, tab_y, 260, tab_h, "Audio & MIDI Export (WAV / MID)", s_tab == 2)) {
+        s_tab = 2;
     }
 
     /* Back to Tracker shortcut button */
@@ -360,7 +495,9 @@ void it_page_files_render(void) {
 
     if (s_tab == 0) {
         render_disk_tab(screen_w, screen_h, ui);
-    } else {
+    } else if (s_tab == 1) {
         render_demos_tab(screen_w, screen_h, ui);
+    } else {
+        render_export_tab(screen_w, screen_h, ui);
     }
 }

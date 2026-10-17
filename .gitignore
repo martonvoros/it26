@@ -9,4 +9,6 @@ build-*/
 *.d
 *.log
 *.wav
+*.mid
+scratch/
 .DS_Store

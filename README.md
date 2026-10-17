@@ -67,20 +67,34 @@ Designed specifically for modern musicians transitioning from horizontal DAWs (A
   - Real-time diagnostic inspector showing status bytes, CC numbers, note velocity, and signal age.
 
 ### 🎵 5. Iconic Real Impulse Tracker Hit Tracks & 20 Genre Demos
+### 🎵 5. Iconic Real Impulse Tracker Hit Tracks & 20 Genre Demos
 * **Autoplay on Startup**: Immediately loads and plays the legendary complex 90s classic house anthem **"House Of Heaven (Xtended)"** (`assets/hard_house.it`) with 86 instruments, 65 samples, and 72 patterns!
-* **Famous Tracker Classics Included**:
-  - `assets/hard_house.it`: "House Of Heaven (Xtended)" — Legendary complex 90s house masterpiece (86 instruments, 65 samples, 72 patterns)
-  - `assets/demos/foregone.it`: Michiel van den Bos — "Foregone Destruction" (*Unreal Tournament* iconic Facing Worlds theme)
+* **100% Authentic Sound Blaster 16+ Track Library**: Every single demo is an authentic, multi-channel, scene-historic `.IT` track with real CD/SB16 WAV samples, full melodies, chords, basslines, and arrangements:
+  - `assets/hard_house.it`: "House Of Heaven (Xtended)" — Alexander Brandon (86 instruments, 65 samples, 72 patterns)
+  - `assets/demos/foregone.it`: Michiel van den Bos — "Foregone Destruction" (*Unreal Tournament* Facing Worlds CTF theme, 31 real SB16 samples, 32 patterns)
   - `assets/demos/basehead_-_unreal_tournament_-_seeker.it`: Basehead — "Seeker" (*Unreal Tournament* official soundtrack)
+  - `assets/demos/aeuk_-_breaking_the_barriers.it`: Aeuk — "Breaking The Barriers" (Nu-Skool Big Beat & Breakbeat)
   - `assets/demos/skaven_-_quality_time_-_big_money_mix_v2.it`: Skaven — "Quality Time (Big Money Mix)"
   - `assets/demos/necros_-_1997_hornet_multimedia_upgrade.it`: Necros — "Hornet Multimedia Upgrade"
-  - `assets/demos/basehead_-_indigo.it`: Basehead — "Indigo"
-  - `assets/groovetasticola.it`: "Groovetasticola" — Classic funk groove
-  - `assets/demos/a-windf.it`: Skaven — "Winds of Fjords"
-  - `assets/demos/surasshu_-_eek.it`: Surasshu — "Eek!"
-* **20 Real Electronic Genre Kits & Demos (`[F10]`)**:
+  - `assets/demos/basehead_-_indigo.it`: Basehead — "Indigo Acid"
+  - `assets/groovetasticola.it`: "Groovetasticola Funk" — Live funk bass & boom-bap swing
+  - `assets/demos/a-windf.it`: Skaven — "Winds of Fjords" (Chillhop & Nordic flute masterpiece)
+  - `assets/demos/surasshu_-_eek.it`: Surasshu — "Eek!" (Contemporary neo-soul & R&B)
+* **20 Real Electronic Genre Demos (`[F10]`)**:
   - House, Drum & Bass, Techno, Trance, Rave, Dub Techno, Synthwave, Breakbeat, Electro, Future Garage, Ambient, Acid Goa, Cyberpunk, and more.
-  - Each genre provides both **"Load Drum Beat & Write Music"** (Drums on Ch 1-4, Ch 5-64 completely free for you to compose) and **"Load Full Real IT Track & Play"**.
+  - Every genre loads a completely unique, fully orchestrated, authentic IT track with genuine 16-bit Sound Blaster samples.
+
+### 💾 6. Audio & MIDI Export Suite (`[F10] -> Export`)
+* **WAV Audio Render (16-bit 44.1kHz Stereo PCM)**:
+  - **Export Pattern Loop to WAV**: Render current pattern with all DSP resonant filters, slides, and panning.
+  - **Export Full Project Master to WAV**: Render full arrangement across all orders to a master `.wav`.
+* **Standard MIDI File Export (SMF Format 1)**:
+  - **Export Pattern Loop to MIDI**: 16 synchronous tracks with pitch & velocity data for FL Studio, Ableton, Logic, Reaper.
+  - **Export Full Song to MIDI**: Complete arrangement timeline exported directly to standard `.mid`.
+
+### 🖥️ 7. Authentic Sharp 1-Bit DOS Bitmap Typography
+* **Zero Antialiasing / Blurry Smoothing**: Pure crisp 1-bit monochrome bitmap thresholding matching classic DOS Impulse Tracker 2.14.
+* **Nearest-Neighbor Scaling**: Zero bilinear blur, razor-sharp on 1080p, 1440p, 4K, and 3440x1440 Ultrawide displays.
 
 ---
 

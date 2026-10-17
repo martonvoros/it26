@@ -375,7 +375,8 @@ bool it_load_file(ITSong* song, const char* filepath) {
 
             ITCell* cell = it_pattern_get_cell(&song->patterns[p], row, ch);
             if (mask & 1) {
-                cell->note = it_mem_u8(pdata, &offset, pat_len);
+                uint8_t raw_n = it_mem_u8(pdata, &offset, pat_len);
+                cell->note = (raw_n < 120) ? (raw_n + 1) : raw_n;
                 last_note[ch] = cell->note;
             }
             if (mask & 2) {
@@ -387,8 +388,9 @@ bool it_load_file(ITSong* song, const char* filepath) {
                 last_vol[ch] = cell->volume;
             }
             if (mask & 8) {
-                cell->effect = it_mem_u8(pdata, &offset, pat_len);
+                uint8_t raw_e = it_mem_u8(pdata, &offset, pat_len);
                 cell->param = it_mem_u8(pdata, &offset, pat_len);
+                cell->effect = (raw_e >= 1 && raw_e <= 26) ? ('A' + (raw_e - 1)) : raw_e;
                 last_eff[ch] = cell->effect;
                 last_par[ch] = cell->param;
             }
@@ -588,11 +590,15 @@ bool it_save_file(const ITSong* song, const char* filepath) {
 
                 it_write_u8(f, (uint8_t)((ch + 1) | 128));
                 it_write_u8(f, mask);
-                if (mask & 1) it_write_u8(f, c->note);
+                if (mask & 1) {
+                    uint8_t raw_n = (c->note >= 1 && c->note <= 120) ? (c->note - 1) : c->note;
+                    it_write_u8(f, raw_n);
+                }
                 if (mask & 2) it_write_u8(f, c->instrument);
                 if (mask & 4) it_write_u8(f, c->volume);
                 if (mask & 8) {
-                    it_write_u8(f, c->effect);
+                    uint8_t raw_e = (c->effect >= 'A' && c->effect <= 'Z') ? (uint8_t)(c->effect - 'A' + 1) : c->effect;
+                    it_write_u8(f, raw_e);
                     it_write_u8(f, c->param);
                 }
             }
@@ -658,14 +664,15 @@ bool it_load_module_any(ITSong* song, const char* filepath) {
     FILE* f = fopen(filepath, "rb");
     if (!f) return false;
 
-    uint8_t magic[4] = {0};
-    fread(magic, 1, 4, f);
+    uint8_t magic[18] = {0};
+    size_t nr = fread(magic, 1, 17, f);
     fclose(f);
+    if (nr < 4) return false;
 
     if (memcmp(magic, "IMPM", 4) == 0) {
         return it_load_file(song, filepath);
     }
-    if (memcmp(magic, "Extended Module:", 16) == 0) {
+    if (nr >= 16 && memcmp(magic, "Extended Module:", 16) == 0) {
         return it_load_xm(song, filepath);
     }
 

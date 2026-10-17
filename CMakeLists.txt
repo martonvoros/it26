@@ -70,6 +70,7 @@ set(IT_SOURCES
   src/page_message.c
   src/page_wizard.c
   src/demo_songs.c
+  src/export.c
   ${GEN_DIR}/font_regular.c
   ${GEN_DIR}/font_bold.c
 )

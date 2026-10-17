@@ -10,13 +10,13 @@ extern const unsigned int font_regular_size;
 extern const unsigned char font_bold[];
 extern const unsigned int font_bold_size;
 
-#define ATLAS_W 512
-#define ATLAS_H 512
-#define FONT_SIZE 18.0f
+#define ATLAS_W 1024
+#define ATLAS_H 1024
+#define FONT_SIZE 15.0f
 
 static SDL_Window* s_window = NULL;
 static SDL_Renderer* s_renderer = NULL;
-static float s_ui_scale = 1.5f;
+static float s_ui_scale = 1.15f;
 
 static stbtt_bakedchar s_cdata_regular[96]; /* ASCII 32..127 */
 static stbtt_bakedchar s_cdata_bold[96];
@@ -24,8 +24,8 @@ static SDL_Texture* s_tex_regular = NULL;
 static SDL_Texture* s_tex_bold = NULL;
 static SDL_Texture* s_bootscreen_tex = NULL;
 
-static int s_char_width = 11;
-static int s_char_height = 20;
+static int s_char_width = 9;
+static int s_char_height = 17;
 
 static SDL_Texture* create_font_texture(const unsigned char* font_data, stbtt_bakedchar* cdata) {
     uint8_t* temp_bitmap = (uint8_t*)calloc(ATLAS_W * ATLAS_H, 1);
@@ -41,7 +41,8 @@ static SDL_Texture* create_font_texture(const unsigned char* font_data, stbtt_ba
     }
 
     for (int i = 0; i < ATLAS_W * ATLAS_H; i++) {
-        uint32_t a = temp_bitmap[i];
+        /* Crisp 1-bit bitmap threshold: ZERO anti-aliasing / smoothing for authentic sharp DOS typography */
+        uint32_t a = (temp_bitmap[i] >= 85) ? 255 : 0;
         rgba[i] = (a << 24) | 0x00FFFFFF;
     }
     free(temp_bitmap);
@@ -50,6 +51,7 @@ static SDL_Texture* create_font_texture(const unsigned char* font_data, stbtt_ba
     if (tex) {
         SDL_UpdateTexture(tex, NULL, rgba, ATLAS_W * sizeof(uint32_t));
         SDL_SetTextureBlendMode(tex, SDL_BLENDMODE_BLEND);
+        SDL_SetTextureScaleMode(tex, SDL_SCALEMODE_NEAREST);
     }
     free(rgba);
     return tex;
@@ -215,7 +217,7 @@ static void draw_text_internal(int x, int y, const char* text, ITColor col, SDL_
     SDL_SetTextureAlphaMod(tex, col.a);
 
     float cx = (float)x;
-    float cy = (float)y + 15.0f; /* Baseline offset */
+    float cy = (float)y + 13.0f; /* Baseline offset for 15.0f font */
     const unsigned char* p = (const unsigned char*)text;
 
     while (*p) {
@@ -231,7 +233,7 @@ static void draw_text_internal(int x, int y, const char* text, ITColor col, SDL_
 
         /* Play triangle: ▶ (0x25B6) or ► (0x25BA) */
         if (cp == 0x25B6 || cp == 0x25BA) {
-            int sz = 10;
+            int sz = 8;
             int px = (int)cx + 1;
             int py = y + (s_char_height - sz) / 2;
             for (int i = 0; i < sz; i++) {
@@ -244,7 +246,7 @@ static void draw_text_internal(int x, int y, const char* text, ITColor col, SDL_
 
         /* Stop square: ■ (0x25A0) */
         if (cp == 0x25A0) {
-            int sz = 8;
+            int sz = 7;
             int px = (int)cx + 1;
             int py = y + (s_char_height - sz) / 2;
             it_gfx_fill_rect(px, py, sz, sz, col);
@@ -254,11 +256,10 @@ static void draw_text_internal(int x, int y, const char* text, ITColor col, SDL_
 
         /* Circle / Dot: ● (0x25CF) */
         if (cp == 0x25CF) {
-            int r = 3;
-            int pcx = (int)cx + s_char_width / 2 - 1;
+            int r = 2;
+            int pcx = (int)cx + s_char_width / 2;
             int pcy = y + s_char_height / 2;
-            it_gfx_fill_rect(pcx - r, pcy - r + 1, r * 2, r * 2 - 2, col);
-            it_gfx_fill_rect(pcx - r + 1, pcy - r, r * 2 - 2, r * 2, col);
+            it_gfx_fill_rect(pcx - r, pcy - r, r * 2 + 1, r * 2 + 1, col);
             cx += (float)s_char_width;
             continue;
         }

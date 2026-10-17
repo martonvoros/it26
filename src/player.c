@@ -297,10 +297,59 @@ static void process_row(void) {
             s_player.song->channel_vol[ch] = (cell->param <= 64) ? cell->param : 64;
         } else if (cell->effect == 'X') {
             s_player.song->channel_pan[ch] = cell->param / 2;
+        } else if (cell->effect == 'S' && (cell->param & 0xF0) == 0x80) {
+            /* S8x: Set Panning */
+            s_player.song->channel_pan[ch] = (cell->param & 0x0F) * 4;
+            for (int i = 0; i < IT_MAX_VIRTUAL_CHANNELS; i++) {
+                ITVoice* v = it_mixer_get_voice(i);
+                if (v && v->active && v->host_channel == ch) {
+                    v->pan_final = ((float)s_player.song->channel_pan[ch] - 32.0f) / 32.0f;
+                }
+            }
+        } else if (cell->effect == 'Z') {
+            /* Zxx: Resonant Lowpass Filter Cutoff */
+            for (int i = 0; i < IT_MAX_VIRTUAL_CHANNELS; i++) {
+                ITVoice* v = it_mixer_get_voice(i);
+                if (v && v->active && v->host_channel == ch) {
+                    v->filter_enabled = (cell->param < 127);
+                    v->filter_cutoff = (float)cell->param;
+                    v->filter_resonance = 64.0f;
+                }
+            }
         }
 
-        /* Note trigger */
-        if (cell->note > 0) {
+        /* Tone Portamento ('G') handling */
+        bool portamento_active = false;
+        if (cell->effect == 'G') {
+            if (cell->param > 0) hc->portamento_mem = cell->param;
+            if (cell->note > 0) {
+                /* Find active voice on this channel */
+                ITVoice* active_v = NULL;
+                for (int i = 0; i < IT_MAX_VIRTUAL_CHANNELS; i++) {
+                    ITVoice* v = it_mixer_get_voice(i);
+                    if (v && v->active && v->host_channel == ch) {
+                        active_v = v;
+                        break;
+                    }
+                }
+                if (active_v) {
+                    portamento_active = true;
+                    int smp_idx = active_v->sample_num;
+                    uint32_t c5 = (smp_idx > 0 && smp_idx < IT_MAX_SAMPLES) ? s_player.song->samples[smp_idx].c5_speed : 8363;
+                    float target_freq = it_note_to_freq(cell->note, c5);
+                    hc->portamento_target_freq = target_freq;
+
+                    if (hc->portamento_mem == 0xFF) {
+                        /* Instant portamento */
+                        active_v->current_freq = target_freq;
+                        active_v->sample_step = (double)target_freq / (double)s_player.sample_rate;
+                    }
+                }
+            }
+        }
+
+        /* Note trigger (only if not portamento sliding an active note) */
+        if (cell->note > 0 && !portamento_active) {
             int vol = (cell->volume > 0 && cell->volume <= 65) ? (cell->volume - 1) : -1;
             it_player_trigger_note(ch, cell->note, cell->instrument, vol);
         }
@@ -308,10 +357,26 @@ static void process_row(void) {
 }
 
 static void process_tick(void) {
-    /* Update envelopes, fades, and effects for all active voices */
+    /* Update envelopes, fades, slides, and effects for all active voices */
     for (int i = 0; i < IT_MAX_VIRTUAL_CHANNELS; i++) {
         ITVoice* v = it_mixer_get_voice(i);
         if (!v || !v->active) continue;
+
+        int ch = v->host_channel;
+        ITHostChannel* hc = &s_player.channels[ch];
+
+        /* Portamento slide towards target */
+        if (hc->portamento_target_freq > 0.0f) {
+            float speed_delta = (float)hc->portamento_mem * 8.0f;
+            if (v->current_freq < hc->portamento_target_freq) {
+                v->current_freq += speed_delta;
+                if (v->current_freq > hc->portamento_target_freq) v->current_freq = hc->portamento_target_freq;
+            } else if (v->current_freq > hc->portamento_target_freq) {
+                v->current_freq -= speed_delta;
+                if (v->current_freq < hc->portamento_target_freq) v->current_freq = hc->portamento_target_freq;
+            }
+            v->sample_step = (double)v->current_freq / (double)s_player.sample_rate;
+        }
 
         if (v->note_fade && v->fadeout_rate > 0) {
             v->fadeout_count -= (int32_t)v->fadeout_rate;
