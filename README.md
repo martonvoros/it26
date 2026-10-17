@@ -19,7 +19,6 @@ Pre-built binaries are available for 64-bit platforms without requiring a build 
 | Platform | Download | Package Type & Details |
 |:---|:---|:---|
 | **Windows Installer** (x86_64) | [**IT26-Windows-x64-Setup-v1.0.4.exe**](https://github.com/martonvoros/it26/releases/download/v1.0.4/IT26-Windows-x64-Setup-v1.0.4.exe) | Signed Setup: desktop/start menu shortcuts, file associations (`.it`, `.xm`, `.s3m`, `.mod`) & certificate trust |
-| **Windows Portable** (x86_64) | [**IT26-Windows-x64-v1.0.4.zip**](https://github.com/martonvoros/it26/releases/download/v1.0.4/IT26-Windows-x64-v1.0.4.zip) | Standalone portable archive: extract and run `IT26.exe` |
 | **Linux** (x86_64) | Source / `build_linux.sh` | Portable binary with ALSA / PulseAudio & `.desktop` integration |
 | **macOS** (Universal) | Source / `build_macos.sh` | Native Universal Binary (`arm64` + `x86_64`) `IT26.app` bundle |
 
