@@ -16,11 +16,20 @@ Conceived and developed by **Marton Voros aka C41**, based on the original Impul
 
 Pre-built binaries are available for 64-bit platforms without requiring a build environment:
 
-| Platform | Download | Instructions |
+| Platform | Download | Package Type & Details |
 |:---|:---|:---|
-| **Windows** (x86_64) | [**IT26-Windows-x64-v1.0.4.zip**](https://github.com/martonvoros/it26/releases/download/v1.0.4/IT26-Windows-x64-v1.0.4.zip) | Extract and run `IT26.exe` (or `run.bat`) |
-| **Linux** (x86_64) | Source / `build_linux.sh` | Portable binary with ALSA / PulseAudio |
-| **macOS** (Universal) | Source / `build_macos.sh` | Apple Silicon (`arm64`) & Intel (`x86_64`) `IT26.app` |
+| **Windows Installer** (x86_64) | [**IT26-Windows-x64-Setup-v1.0.4.exe**](https://github.com/martonvoros/it26/releases/download/v1.0.4/IT26-Windows-x64-Setup-v1.0.4.exe) | Signed Setup: desktop/start menu shortcuts, file associations (`.it`, `.xm`, `.s3m`, `.mod`) & certificate trust |
+| **Windows Portable** (x86_64) | [**IT26-Windows-x64-v1.0.4.zip**](https://github.com/martonvoros/it26/releases/download/v1.0.4/IT26-Windows-x64-v1.0.4.zip) | Standalone portable archive: extract and run `IT26.exe` |
+| **Linux** (x86_64) | Source / `build_linux.sh` | Portable binary with ALSA / PulseAudio & `.desktop` integration |
+| **macOS** (Universal) | Source / `build_macos.sh` | Native Universal Binary (`arm64` + `x86_64`) `IT26.app` bundle |
+
+---
+
+## Demonstration
+
+[![IT26 Workstation Demonstration](assets/demo_screenshot.png)](https://github.com/martonvoros/it26/releases/download/v1.0.4/IT26.mp4)
+
+> 🎬 **[Watch High-Definition Demo Video (IT26.mp4)](https://github.com/martonvoros/it26/releases/download/v1.0.4/IT26.mp4)** — 1080p full-screen capture showcasing live 138 BPM playback, sub-pixel vector rendering, audio spectrum visualizer, and keyboard-driven sequencing.
 
 ---
 

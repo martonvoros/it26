@@ -14,3 +14,10 @@ scratch/
 .DS_Store
 *.dll
 dist/
+*.pfx
+*.p12
+*.cer
+*.crt
+*.key
+Downloads/
+*.mp4
