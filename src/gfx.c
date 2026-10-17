@@ -1,4 +1,6 @@
 #include "gfx.h"
+#include <math.h>
+
 #define STB_TRUETYPE_IMPLEMENTATION
 #include "stb_truetype.h"
 
@@ -12,7 +14,7 @@ extern const unsigned int font_bold_size;
 
 #define ATLAS_W 1024
 #define ATLAS_H 1024
-#define FONT_SIZE 15.0f
+#define FONT_BASE_SIZE 15.0f
 
 static SDL_Window* s_window = NULL;
 static SDL_Renderer* s_renderer = NULL;
@@ -25,15 +27,23 @@ static SDL_Texture* s_tex_bold = NULL;
 static SDL_Texture* s_bootscreen_tex = NULL;
 
 static int s_char_width = 9;
-static int s_char_height = 17;
+static int s_char_height = 20;
 
 static SDL_Texture* create_font_texture(const unsigned char* font_data, stbtt_bakedchar* cdata) {
     uint8_t* temp_bitmap = (uint8_t*)calloc(ATLAS_W * ATLAS_H, 1);
     if (!temp_bitmap) return NULL;
 
-    stbtt_BakeFontBitmap(font_data, 0, FONT_SIZE, temp_bitmap, ATLAS_W, ATLAS_H, 32, 96, cdata);
+    /* Bake directly at native physical display pixel size: 100% 1:1 pixel mapping, zero scaling distortion */
+    float pixel_size = roundf(FONT_BASE_SIZE * s_ui_scale);
+    if (pixel_size < 12.0f) pixel_size = 12.0f;
 
-    /* Convert A8 to RGBA32 (white with alpha) */
+    stbtt_BakeFontBitmap(font_data, 0, pixel_size, temp_bitmap, ATLAS_W, ATLAS_H, 32, 96, cdata);
+
+    /* Convert A8 to RGBA32 with steep contrast curve:
+     * - Discards fuzzy translucent antialiasing halos (<= 20 alpha clipped to 0)
+     * - Hardens stroke core to 100% solid, opaque color (super crisp & vivid)
+     * - Preserves steep sub-pixel micro-gradient at edges so strokes never fracture or break
+     */
     uint32_t* rgba = (uint32_t*)malloc(ATLAS_W * ATLAS_H * sizeof(uint32_t));
     if (!rgba) {
         free(temp_bitmap);
@@ -41,9 +51,18 @@ static SDL_Texture* create_font_texture(const unsigned char* font_data, stbtt_ba
     }
 
     for (int i = 0; i < ATLAS_W * ATLAS_H; i++) {
-        /* Crisp 1-bit bitmap threshold: ZERO anti-aliasing / smoothing for authentic sharp DOS typography */
-        uint32_t a = (temp_bitmap[i] >= 85) ? 255 : 0;
-        rgba[i] = (a << 24) | 0x00FFFFFF;
+        uint8_t raw = temp_bitmap[i];
+        if (raw <= 20) {
+            rgba[i] = 0x00FFFFFF; /* 0 alpha: completely eliminate blurry halo */
+        } else {
+            float a = (float)raw / 255.0f;
+            a = powf(a, 0.40f);      /* Boost stroke core to solid 1.0 */
+            a = (a - 0.15f) / 0.70f; /* Tight steep contrast ramp */
+            if (a < 0.0f) a = 0.0f;
+            if (a > 1.0f) a = 1.0f;
+            uint32_t final_a = (uint32_t)(a * 255.0f);
+            rgba[i] = (final_a << 24) | 0x00FFFFFF;
+        }
     }
     free(temp_bitmap);
 
@@ -51,28 +70,42 @@ static SDL_Texture* create_font_texture(const unsigned char* font_data, stbtt_ba
     if (tex) {
         SDL_UpdateTexture(tex, NULL, rgba, ATLAS_W * sizeof(uint32_t));
         SDL_SetTextureBlendMode(tex, SDL_BLENDMODE_BLEND);
-        SDL_SetTextureScaleMode(tex, SDL_SCALEMODE_NEAREST);
+        SDL_SetTextureScaleMode(tex, SDL_SCALEMODE_LINEAR);
     }
     free(rgba);
     return tex;
+}
+
+static void rebuild_fonts(void) {
+    if (s_tex_regular) {
+        SDL_DestroyTexture(s_tex_regular);
+        s_tex_regular = NULL;
+    }
+    if (s_tex_bold) {
+        SDL_DestroyTexture(s_tex_bold);
+        s_tex_bold = NULL;
+    }
+    s_tex_regular = create_font_texture(font_regular, s_cdata_regular);
+    s_tex_bold = create_font_texture(font_bold, s_cdata_bold);
+
+    if (s_tex_regular) {
+        float adv = s_cdata_regular['0' - 32].xadvance;
+        s_char_width = (int)roundf(adv / s_ui_scale);
+        if (s_char_width <= 0) s_char_width = 9;
+        s_char_height = 20;
+    }
 }
 
 bool it_gfx_init(SDL_Window* window, SDL_Renderer* renderer) {
     s_window = window;
     s_renderer = renderer;
 
-    s_tex_regular = create_font_texture(font_regular, s_cdata_regular);
-    s_tex_bold = create_font_texture(font_bold, s_cdata_bold);
+    rebuild_fonts();
 
     if (!s_tex_regular) {
         SDL_Log("Failed to create regular font texture");
         return false;
     }
-
-    /* Monospace character pitch */
-    s_char_width = (int)(s_cdata_regular['0' - 32].xadvance);
-    if (s_char_width <= 0) s_char_width = 11;
-    s_char_height = 20;
 
     return true;
 }
@@ -94,7 +127,12 @@ void it_gfx_shutdown(void) {
 
 void it_gfx_set_scale(float scale) {
     if (scale >= 0.5f && scale <= 4.0f) {
-        s_ui_scale = scale;
+        if (fabsf(s_ui_scale - scale) > 0.001f) {
+            s_ui_scale = scale;
+            if (s_renderer) {
+                rebuild_fonts();
+            }
+        }
     }
 }
 
@@ -216,14 +254,19 @@ static void draw_text_internal(int x, int y, const char* text, ITColor col, SDL_
     SDL_SetTextureColorMod(tex, col.r, col.g, col.b);
     SDL_SetTextureAlphaMod(tex, col.a);
 
-    float cx = (float)x;
-    float cy = (float)y + 13.0f; /* Baseline offset for 15.0f font */
+    /* Baseline offset and starting positions in physical screen pixels */
+    float baseline_offset = roundf(13.0f * s_ui_scale);
+    float cx = roundf((float)x * s_ui_scale);
+    float cy = roundf((float)y * s_ui_scale) + baseline_offset;
+    float start_screen_x = cx;
+    float screen_line_h = roundf((float)s_char_height * s_ui_scale);
+
     const unsigned char* p = (const unsigned char*)text;
 
     while (*p) {
         if (*p == '\n') {
-            cy += (float)s_char_height;
-            cx = (float)x;
+            cy += screen_line_h;
+            cx = start_screen_x;
             p++;
             continue;
         }
@@ -233,61 +276,69 @@ static void draw_text_internal(int x, int y, const char* text, ITColor col, SDL_
 
         /* Play triangle: ▶ (0x25B6) or ► (0x25BA) */
         if (cp == 0x25B6 || cp == 0x25BA) {
-            int sz = 8;
-            int px = (int)cx + 1;
-            int py = y + (s_char_height - sz) / 2;
+            int sz = (int)roundf(8.0f * s_ui_scale);
+            int px = (int)cx + (int)roundf(1.0f * s_ui_scale);
+            int py = (int)roundf((float)y * s_ui_scale) + (int)((screen_line_h - (float)sz) / 2.0f);
             for (int i = 0; i < sz; i++) {
                 int h = (i * sz) / (sz * 2);
-                it_gfx_draw_line(px + i, py + (sz / 2) - h, px + i, py + (sz / 2) + h, col);
+                SDL_SetRenderDrawColor(s_renderer, col.r, col.g, col.b, col.a);
+                SDL_RenderLine(s_renderer, (float)(px + i), (float)(py + (sz / 2) - h),
+                                           (float)(px + i), (float)(py + (sz / 2) + h));
             }
-            cx += (float)s_char_width;
+            cx += (float)cdata['0' - 32].xadvance;
             continue;
         }
 
         /* Stop square: ■ (0x25A0) */
         if (cp == 0x25A0) {
-            int sz = 7;
-            int px = (int)cx + 1;
-            int py = y + (s_char_height - sz) / 2;
-            it_gfx_fill_rect(px, py, sz, sz, col);
-            cx += (float)s_char_width;
+            int sz = (int)roundf(7.0f * s_ui_scale);
+            int px = (int)cx + (int)roundf(1.0f * s_ui_scale);
+            int py = (int)roundf((float)y * s_ui_scale) + (int)((screen_line_h - (float)sz) / 2.0f);
+            SDL_FRect sq = { (float)px, (float)py, (float)sz, (float)sz };
+            SDL_SetRenderDrawColor(s_renderer, col.r, col.g, col.b, col.a);
+            SDL_RenderFillRect(s_renderer, &sq);
+            cx += (float)cdata['0' - 32].xadvance;
             continue;
         }
 
         /* Circle / Dot: ● (0x25CF) */
         if (cp == 0x25CF) {
-            int r = 2;
-            int pcx = (int)cx + s_char_width / 2;
-            int pcy = y + s_char_height / 2;
-            it_gfx_fill_rect(pcx - r, pcy - r, r * 2 + 1, r * 2 + 1, col);
-            cx += (float)s_char_width;
+            int r = (int)roundf(2.0f * s_ui_scale);
+            int pcx = (int)cx + (int)(cdata['0' - 32].xadvance / 2.0f);
+            int pcy = (int)roundf((float)y * s_ui_scale) + (int)(screen_line_h / 2.0f);
+            SDL_FRect cd = { (float)(pcx - r), (float)(pcy - r), (float)(r * 2 + 1), (float)(r * 2 + 1) };
+            SDL_SetRenderDrawColor(s_renderer, col.r, col.g, col.b, col.a);
+            SDL_RenderFillRect(s_renderer, &cd);
+            cx += (float)cdata['0' - 32].xadvance;
             continue;
         }
 
         /* Lightning / Bolt: ⚡ (0x26A1) */
         if (cp == 0x26A1) {
-            int px = (int)cx + 2;
-            int py = y + 4;
-            it_gfx_draw_line(px + 4, py, px + 1, py + 5, col);
-            it_gfx_draw_line(px + 1, py + 5, px + 5, py + 5, col);
-            it_gfx_draw_line(px + 5, py + 5, px + 2, py + 11, col);
-            cx += (float)s_char_width;
+            int px = (int)cx + (int)roundf(2.0f * s_ui_scale);
+            int py = (int)roundf((float)y * s_ui_scale) + (int)roundf(4.0f * s_ui_scale);
+            float sc = s_ui_scale;
+            SDL_SetRenderDrawColor(s_renderer, col.r, col.g, col.b, col.a);
+            SDL_RenderLine(s_renderer, px + 4.0f * sc, py, px + 1.0f * sc, py + 5.0f * sc);
+            SDL_RenderLine(s_renderer, px + 1.0f * sc, py + 5.0f * sc, px + 5.0f * sc, py + 5.0f * sc);
+            SDL_RenderLine(s_renderer, px + 5.0f * sc, py + 5.0f * sc, px + 2.0f * sc, py + 11.0f * sc);
+            cx += (float)cdata['0' - 32].xadvance;
             continue;
         }
 
-        /* Clean mapping for Latin accented characters */
-        if (cp >= 0xC0 && cp <= 0xC5) cp = 'A';
-        else if (cp >= 0xE0 && cp <= 0xE5) cp = 'a';
-        else if (cp >= 0xC8 && cp <= 0xCB) cp = 'E';
-        else if (cp >= 0xE8 && cp <= 0xEB) cp = 'e';
+        /* Extended Latin / Hungarian accents */
+        if ((cp >= 0xC0 && cp <= 0xC5) || cp == 0x0100 || cp == 0x0102 || cp == 0x0104) cp = 'A';
+        else if ((cp >= 0xE0 && cp <= 0xE5) || cp == 0x0101 || cp == 0x0103 || cp == 0x0105) cp = 'a';
+        else if ((cp >= 0xC8 && cp <= 0xCB) || cp == 0x0118 || cp == 0x011A) cp = 'E';
+        else if ((cp >= 0xE8 && cp <= 0xEB) || cp == 0x0119 || cp == 0x011B) cp = 'e';
         else if (cp >= 0xCC && cp <= 0xCF) cp = 'I';
         else if (cp >= 0xEC && cp <= 0xEF) cp = 'i';
-        else if (cp >= 0xD2 && cp <= 0xD6) cp = 'O';
-        else if (cp >= 0xF2 && cp <= 0xF6) cp = 'o';
-        else if (cp >= 0xD9 && cp <= 0xDC) cp = 'U';
-        else if (cp >= 0xF9 && cp <= 0xFC) cp = 'u';
+        else if ((cp >= 0xD2 && cp <= 0xD6) || cp == 0x0150 || cp == 0x014C) cp = 'O';
+        else if ((cp >= 0xF2 && cp <= 0xF6) || cp == 0x0151 || cp == 0x014D) cp = 'o';
+        else if ((cp >= 0xD9 && cp <= 0xDC) || cp == 0x0170 || cp == 0x016E) cp = 'U';
+        else if ((cp >= 0xF9 && cp <= 0xFC) || cp == 0x0171 || cp == 0x016F) cp = 'u';
 
-        if (cp < 32 || cp > 126) cp = ' '; /* Clean space instead of ugly '?' */
+        if (cp < 32 || cp > 126) cp = ' '; /* Clean space instead of missing glyph */
 
         stbtt_aligned_quad q;
         stbtt_GetBakedQuad(cdata, ATLAS_W, ATLAS_H, cp - 32, &cx, &cy, &q, 1);
@@ -298,10 +349,11 @@ static void draw_text_internal(int x, int y, const char* text, ITColor col, SDL_
         src.w = (q.s1 - q.s0) * ATLAS_W;
         src.h = (q.t1 - q.t0) * ATLAS_H;
 
-        dst.x = q.x0 * s_ui_scale;
-        dst.y = q.y0 * s_ui_scale;
-        dst.w = (q.x1 - q.x0) * s_ui_scale;
-        dst.h = (q.y1 - q.y0) * s_ui_scale;
+        /* Quad coordinates are already in physical screen pixels! Snap to whole integer pixel for maximum sharpness! */
+        dst.x = floorf(q.x0 + 0.5f);
+        dst.y = floorf(q.y0 + 0.5f);
+        dst.w = floorf(q.x1 - q.x0 + 0.5f);
+        dst.h = floorf(q.y1 - q.y0 + 0.5f);
 
         SDL_RenderTexture(s_renderer, tex, &src, &dst);
     }
@@ -337,9 +389,7 @@ void it_gfx_screen_to_logical(int sx, int sy, int* lx, int* ly) {
 }
 
 void it_gfx_set_ui_scale(float scale) {
-    if (scale >= 0.5f && scale <= 4.0f) {
-        s_ui_scale = scale;
-    }
+    it_gfx_set_scale(scale);
 }
 
 float it_gfx_get_ui_scale(void) {
