@@ -1,0 +1,11 @@
+build/
+build-*/
+*.user
+.vs/
+.vscode/
+*.exe
+*.o
+*.obj
+*.d
+*.log
+.DS_Store
