@@ -5,15 +5,15 @@ static ITConfig s_config;
 void it_config_init_defaults(ITConfig* cfg) {
     if (!cfg) return;
     memset(cfg, 0, sizeof(ITConfig));
-    cfg->ui_scale = 1.5f;             /* 1.5x gives crisp, gorgeous readable modern resolution on 1080p/1440p */
+    cfg->ui_scale = 1.25f;            /* 1.25x gives crisp, balanced high-DPI modern resolution on 1080p/1440p */
     cfg->sample_rate = 48000;
     cfg->audio_device_index = 0;
     cfg->midi_device_index = 0;
     cfg->master_volume = 1.0f;
     cfg->show_help_on_startup = true; /* Shows detailed help on first startup */
     cfg->fullscreen = false;
-    cfg->window_width = 1280;
-    cfg->window_height = 800;
+    cfg->window_width = 1600;
+    cfg->window_height = 960;
     strcpy(cfg->last_dir, ".");
 }
 

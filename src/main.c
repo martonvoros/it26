@@ -24,8 +24,8 @@ int main(int argc, char* argv[]) {
     it_config_load(cfg);
 
     /* Create high-DPI capable window */
-    int win_w = (int)(IT_LOGICAL_WIDTH * cfg->ui_scale);
-    int win_h = (int)(IT_LOGICAL_HEIGHT * cfg->ui_scale);
+    int win_w = (cfg->window_width > 0) ? cfg->window_width : (int)(IT_LOGICAL_WIDTH * cfg->ui_scale);
+    int win_h = (cfg->window_height > 0) ? cfg->window_height : (int)(IT_LOGICAL_HEIGHT * cfg->ui_scale);
 
     SDL_Window* window = SDL_CreateWindow(
         "Impulse Tracker Modern - [64-bit Workstation]",

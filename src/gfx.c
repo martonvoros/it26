@@ -14,11 +14,11 @@ extern const unsigned int font_bold_size;
 
 #define ATLAS_W 1024
 #define ATLAS_H 1024
-#define FONT_BASE_SIZE 15.0f
+#define FONT_BASE_SIZE 16.0f
 
 static SDL_Window* s_window = NULL;
 static SDL_Renderer* s_renderer = NULL;
-static float s_ui_scale = 1.15f;
+static float s_ui_scale = 1.25f;
 
 static stbtt_bakedchar s_cdata_regular[96]; /* ASCII 32..127 */
 static stbtt_bakedchar s_cdata_bold[96];
@@ -26,23 +26,22 @@ static SDL_Texture* s_tex_regular = NULL;
 static SDL_Texture* s_tex_bold = NULL;
 static SDL_Texture* s_bootscreen_tex = NULL;
 
-static int s_char_width = 9;
+static int s_char_width = 10;
 static int s_char_height = 20;
 
 static SDL_Texture* create_font_texture(const unsigned char* font_data, stbtt_bakedchar* cdata) {
     uint8_t* temp_bitmap = (uint8_t*)calloc(ATLAS_W * ATLAS_H, 1);
     if (!temp_bitmap) return NULL;
 
-    /* Bake directly at native physical display pixel size: 100% 1:1 pixel mapping, zero scaling distortion */
+    /* Native physical display pixel size: 100% 1:1 pixel mapping, zero scaling distortion */
     float pixel_size = roundf(FONT_BASE_SIZE * s_ui_scale);
-    if (pixel_size < 12.0f) pixel_size = 12.0f;
+    if (pixel_size < 13.0f) pixel_size = 13.0f;
 
     stbtt_BakeFontBitmap(font_data, 0, pixel_size, temp_bitmap, ATLAS_W, ATLAS_H, 32, 96, cdata);
 
-    /* Convert A8 to RGBA32 with steep contrast curve:
-     * - Discards fuzzy translucent antialiasing halos (<= 20 alpha clipped to 0)
-     * - Hardens stroke core to 100% solid, opaque color (super crisp & vivid)
-     * - Preserves steep sub-pixel micro-gradient at edges so strokes never fracture or break
+    /* Convert A8 to RGBA32 with authentic 1-bit high-DPI threshold (>= 32):
+     * - ZERO anti-aliasing / smoothing halo: every pixel is 100% solid foreground color
+     * - Threshold 32 guarantees complete stroke connectivity across curves and diagonals
      */
     uint32_t* rgba = (uint32_t*)malloc(ATLAS_W * ATLAS_H * sizeof(uint32_t));
     if (!rgba) {
@@ -51,18 +50,8 @@ static SDL_Texture* create_font_texture(const unsigned char* font_data, stbtt_ba
     }
 
     for (int i = 0; i < ATLAS_W * ATLAS_H; i++) {
-        uint8_t raw = temp_bitmap[i];
-        if (raw <= 20) {
-            rgba[i] = 0x00FFFFFF; /* 0 alpha: completely eliminate blurry halo */
-        } else {
-            float a = (float)raw / 255.0f;
-            a = powf(a, 0.40f);      /* Boost stroke core to solid 1.0 */
-            a = (a - 0.15f) / 0.70f; /* Tight steep contrast ramp */
-            if (a < 0.0f) a = 0.0f;
-            if (a > 1.0f) a = 1.0f;
-            uint32_t final_a = (uint32_t)(a * 255.0f);
-            rgba[i] = (final_a << 24) | 0x00FFFFFF;
-        }
+        uint32_t a = (temp_bitmap[i] >= 32) ? 255 : 0;
+        rgba[i] = (a << 24) | 0x00FFFFFF;
     }
     free(temp_bitmap);
 
@@ -70,7 +59,7 @@ static SDL_Texture* create_font_texture(const unsigned char* font_data, stbtt_ba
     if (tex) {
         SDL_UpdateTexture(tex, NULL, rgba, ATLAS_W * sizeof(uint32_t));
         SDL_SetTextureBlendMode(tex, SDL_BLENDMODE_BLEND);
-        SDL_SetTextureScaleMode(tex, SDL_SCALEMODE_LINEAR);
+        SDL_SetTextureScaleMode(tex, SDL_SCALEMODE_NEAREST);
     }
     free(rgba);
     return tex;
@@ -91,7 +80,7 @@ static void rebuild_fonts(void) {
     if (s_tex_regular) {
         float adv = s_cdata_regular['0' - 32].xadvance;
         s_char_width = (int)roundf(adv / s_ui_scale);
-        if (s_char_width <= 0) s_char_width = 9;
+        if (s_char_width <= 0) s_char_width = 10;
         s_char_height = 20;
     }
 }
@@ -142,13 +131,15 @@ float it_gfx_get_scale(void) {
 
 int it_gfx_get_width(void) {
     int w = 1280, h = 800;
-    if (s_window) SDL_GetWindowSize(s_window, &w, &h);
+    if (s_renderer) SDL_GetRenderOutputSize(s_renderer, &w, &h);
+    else if (s_window) SDL_GetWindowSizeInPixels(s_window, &w, &h);
     return w;
 }
 
 int it_gfx_get_height(void) {
     int w = 1280, h = 800;
-    if (s_window) SDL_GetWindowSize(s_window, &w, &h);
+    if (s_renderer) SDL_GetRenderOutputSize(s_renderer, &w, &h);
+    else if (s_window) SDL_GetWindowSizeInPixels(s_window, &w, &h);
     return h;
 }
 
@@ -255,7 +246,7 @@ static void draw_text_internal(int x, int y, const char* text, ITColor col, SDL_
     SDL_SetTextureAlphaMod(tex, col.a);
 
     /* Baseline offset and starting positions in physical screen pixels */
-    float baseline_offset = roundf(13.0f * s_ui_scale);
+    float baseline_offset = roundf(14.0f * s_ui_scale);
     float cx = roundf((float)x * s_ui_scale);
     float cy = roundf((float)y * s_ui_scale) + baseline_offset;
     float start_screen_x = cx;
@@ -343,17 +334,19 @@ static void draw_text_internal(int x, int y, const char* text, ITColor col, SDL_
         stbtt_aligned_quad q;
         stbtt_GetBakedQuad(cdata, ATLAS_W, ATLAS_H, cp - 32, &cx, &cy, &q, 1);
 
-        SDL_FRect src, dst;
-        src.x = q.s0 * ATLAS_W;
-        src.y = q.t0 * ATLAS_H;
-        src.w = (q.s1 - q.s0) * ATLAS_W;
-        src.h = (q.t1 - q.t0) * ATLAS_H;
+        const stbtt_bakedchar* b = &cdata[cp - 32];
+        SDL_FRect src;
+        src.x = (float)b->x0;
+        src.y = (float)b->y0;
+        src.w = (float)(b->x1 - b->x0);
+        src.h = (float)(b->y1 - b->y0);
 
-        /* Quad coordinates are already in physical screen pixels! Snap to whole integer pixel for maximum sharpness! */
+        /* 1:1 Bit-perfect nearest-neighbor blit to whole display pixels: ZERO blur, ZERO fractional scaling */
+        SDL_FRect dst;
         dst.x = floorf(q.x0 + 0.5f);
         dst.y = floorf(q.y0 + 0.5f);
-        dst.w = floorf(q.x1 - q.x0 + 0.5f);
-        dst.h = floorf(q.y1 - q.y0 + 0.5f);
+        dst.w = (float)(b->x1 - b->x0);
+        dst.h = (float)(b->y1 - b->y0);
 
         SDL_RenderTexture(s_renderer, tex, &src, &dst);
     }

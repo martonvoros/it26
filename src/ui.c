@@ -28,8 +28,8 @@ static uint32_t s_bootscreen_start = 0;
 
 bool it_ui_init(void) {
     memset(&s_ui_state, 0, sizeof(s_ui_state));
-    s_ui_state.current_page = PAGE_WIZARD; /* Start directly with the Quickstart Wizard! */
-    s_bootscreen_start = SDL_GetTicks();
+    s_ui_state.current_page = PAGE_PATTERN;
+    s_bootscreen_start = 0;
     s_ui_state.edit_mode = true;
     s_ui_state.current_octave = 4;
     s_ui_state.current_instrument = 1;
